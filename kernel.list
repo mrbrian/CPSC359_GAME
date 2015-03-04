@@ -1,0 +1,267 @@
+
+build/output.elf:     file format elf32-littlearm
+
+
+Disassembly of section .init:
+
+00008000 <_start>:
+    8000:	ea000ca7 	b	b2a4 <main>
+
+Disassembly of section .text:
+
+0000b000 <InitFrameBufferInt>:
+    b000:	e92d0070 	push	{r4, r5, r6}
+    b004:	e59f4064 	ldr	r4, [pc, #100]	; b070 <testo$+0x2c>
+    b008:	e59f6064 	ldr	r6, [pc, #100]	; b074 <testo$+0x30>
+    b00c:	e2844101 	add	r4, r4, #1073741824	; 0x40000000
+    b010:	e204000f 	and	r0, r4, #15
+    b014:	e3500000 	cmp	r0, #0
+    b018:	13a00000 	movne	r0, #0
+    b01c:	18bd0070 	popne	{r4, r5, r6}
+    b020:	112fff1e 	bxne	lr
+    b024:	e3844001 	orr	r4, r4, #1
+
+0000b028 <wait1$>:
+    b028:	e5963018 	ldr	r3, [r6, #24]
+    b02c:	e3130102 	tst	r3, #-2147483648	; 0x80000000
+    b030:	1afffffc 	bne	b028 <wait1$>
+    b034:	e5864020 	str	r4, [r6, #32]
+
+0000b038 <wait2$>:
+    b038:	e5964018 	ldr	r4, [r6, #24]
+    b03c:	e3340101 	teq	r4, #1073741824	; 0x40000000
+    b040:	1afffffc 	bne	b038 <wait2$>
+
+0000b044 <testo$>:
+    b044:	e5964000 	ldr	r4, [r6]
+    b048:	e204500f 	and	r5, r4, #15
+    b04c:	e3550001 	cmp	r5, #1
+    b050:	1afffff8 	bne	b038 <wait2$>
+    b054:	e3d4400f 	bics	r4, r4, #15
+    b058:	13a00000 	movne	r0, #0
+    b05c:	18bd0070 	popne	{r4, r5, r6}
+    b060:	112fff1e 	bxne	lr
+    b064:	e1a00005 	mov	r0, r5
+    b068:	e8bd0070 	pop	{r4, r5, r6}
+    b06c:	e12fff1e 	bx	lr
+    b070:	0000a000 	.word	0x0000a000
+    b074:	2000b880 	.word	0x2000b880
+
+0000b078 <EnableJTAG>:
+    b078:	e52de004 	push	{lr}		; (str lr, [sp, #-4]!)
+    b07c:	e59f0064 	ldr	r0, [pc, #100]	; b0e8 <dowaitloop+0xc>
+    b080:	e0211001 	eor	r1, r1, r1
+    b084:	e5801000 	str	r1, [r0]
+    b088:	eb000012 	bl	b0d8 <dowait>
+    b08c:	e59f0058 	ldr	r0, [pc, #88]	; b0ec <dowaitloop+0x10>
+    b090:	e59f1058 	ldr	r1, [pc, #88]	; b0f0 <dowaitloop+0x14>
+    b094:	e5801000 	str	r1, [r0]
+    b098:	eb00000e 	bl	b0d8 <dowait>
+    b09c:	e0211001 	eor	r1, r1, r1
+    b0a0:	e5801000 	str	r1, [r0]
+    b0a4:	e59f0048 	ldr	r0, [pc, #72]	; b0f4 <dowaitloop+0x18>
+    b0a8:	e5901000 	ldr	r1, [r0]
+    b0ac:	e3c11a07 	bic	r1, r1, #28672	; 0x7000
+    b0b0:	e3811a02 	orr	r1, r1, #8192	; 0x2000
+    b0b4:	e5801000 	str	r1, [r0]
+    b0b8:	e59f0038 	ldr	r0, [pc, #56]	; b0f8 <dowaitloop+0x1c>
+    b0bc:	e5901000 	ldr	r1, [r0]
+    b0c0:	e59f2034 	ldr	r2, [pc, #52]	; b0fc <dowaitloop+0x20>
+    b0c4:	e1c11002 	bic	r1, r1, r2
+    b0c8:	e59f2030 	ldr	r2, [pc, #48]	; b100 <dowaitloop+0x24>
+    b0cc:	e1811002 	orr	r1, r1, r2
+    b0d0:	e5801000 	str	r1, [r0]
+    b0d4:	e49df004 	pop	{pc}		; (ldr pc, [sp], #4)
+
+0000b0d8 <dowait>:
+    b0d8:	e3a02f4b 	mov	r2, #300	; 0x12c
+
+0000b0dc <dowaitloop>:
+    b0dc:	e2522001 	subs	r2, r2, #1
+    b0e0:	1afffffd 	bne	b0dc <dowaitloop>
+    b0e4:	e12fff1e 	bx	lr
+    b0e8:	20200094 	.word	0x20200094
+    b0ec:	20200098 	.word	0x20200098
+    b0f0:	0bc00010 	.word	0x0bc00010
+    b0f4:	20200000 	.word	0x20200000
+    b0f8:	20200008 	.word	0x20200008
+    b0fc:	00e3ffc0 	.word	0x00e3ffc0
+    b100:	0061b6c0 	.word	0x0061b6c0
+
+0000b104 <SetGPIOFunc>:
+    b104:	e59f20dc 	ldr	r2, [pc, #220]	; b1e8 <waitLoop+0x10>
+
+0000b108 <setGPIOloop$>:
+    b108:	e3510009 	cmp	r1, #9
+    b10c:	8241100a 	subhi	r1, r1, #10
+    b110:	82822004 	addhi	r2, r2, #4
+    b114:	8afffffb 	bhi	b108 <setGPIOloop$>
+    b118:	e0811081 	add	r1, r1, r1, lsl #1
+    b11c:	e1a00110 	lsl	r0, r0, r1
+    b120:	e3a03007 	mov	r3, #7
+    b124:	e1a03113 	lsl	r3, r3, r1
+    b128:	e5921000 	ldr	r1, [r2]
+    b12c:	e1c11003 	bic	r1, r1, r3
+    b130:	e1800001 	orr	r0, r0, r1
+    b134:	e5820000 	str	r0, [r2]
+    b138:	e12fff1e 	bx	lr
+
+0000b13c <GetGPIOFunc>:
+    b13c:	e59f20a4 	ldr	r2, [pc, #164]	; b1e8 <waitLoop+0x10>
+
+0000b140 <getGPIOloop$>:
+    b140:	e3500009 	cmp	r0, #9
+    b144:	8240000a 	subhi	r0, r0, #10
+    b148:	82822004 	addhi	r2, r2, #4
+    b14c:	8afffffb 	bhi	b140 <getGPIOloop$>
+    b150:	e0800080 	add	r0, r0, r0, lsl #1
+    b154:	e1a01011 	lsl	r1, r1, r0
+    b158:	e3a03007 	mov	r3, #7
+    b15c:	e5921000 	ldr	r1, [r2]
+    b160:	e1a01031 	lsr	r1, r1, r0
+    b164:	e0011003 	and	r1, r1, r3
+    b168:	e12fff1e 	bx	lr
+
+0000b16c <WriteGPIO>:
+    b16c:	e92d0030 	push	{r4, r5}
+    b170:	e59f2070 	ldr	r2, [pc, #112]	; b1e8 <waitLoop+0x10>
+    b174:	e3a04028 	mov	r4, #40	; 0x28
+    b178:	e3a0501c 	mov	r5, #28
+    b17c:	e3500020 	cmp	r0, #32
+    b180:	82844004 	addhi	r4, r4, #4
+    b184:	82855004 	addhi	r5, r5, #4
+    b188:	82400020 	subhi	r0, r0, #32
+    b18c:	e3a03001 	mov	r3, #1
+    b190:	e1a03013 	lsl	r3, r3, r0
+    b194:	e3310000 	teq	r1, #0
+    b198:	07823004 	streq	r3, [r2, r4]
+    b19c:	17823005 	strne	r3, [r2, r5]
+    b1a0:	e8bd0030 	pop	{r4, r5}
+    b1a4:	e12fff1e 	bx	lr
+
+0000b1a8 <ReadGPIO>:
+    b1a8:	e59f2038 	ldr	r2, [pc, #56]	; b1e8 <waitLoop+0x10>
+    b1ac:	e5921034 	ldr	r1, [r2, #52]	; 0x34
+    b1b0:	e3a03001 	mov	r3, #1
+    b1b4:	e1a03013 	lsl	r3, r3, r0
+    b1b8:	e0011003 	and	r1, r1, r3
+    b1bc:	e3310000 	teq	r1, #0
+    b1c0:	03a00000 	moveq	r0, #0
+    b1c4:	13a00001 	movne	r0, #1
+    b1c8:	e12fff1e 	bx	lr
+
+0000b1cc <Wait>:
+    b1cc:	e59f3018 	ldr	r3, [pc, #24]	; b1ec <waitLoop+0x14>
+    b1d0:	e5931000 	ldr	r1, [r3]
+    b1d4:	e0811000 	add	r1, r1, r0
+
+0000b1d8 <waitLoop>:
+    b1d8:	e5932000 	ldr	r2, [r3]
+    b1dc:	e1510002 	cmp	r1, r2
+    b1e0:	8afffffc 	bhi	b1d8 <waitLoop>
+    b1e4:	e12fff1e 	bx	lr
+    b1e8:	20200000 	.word	0x20200000
+    b1ec:	20003004 	.word	0x20003004
+
+0000b1f0 <InitSNES>:
+    b1f0:	e92d4030 	push	{r4, r5, lr}
+    b1f4:	e3a0100b 	mov	r1, #11
+    b1f8:	e3a00001 	mov	r0, #1
+    b1fc:	ebffffc0 	bl	b104 <SetGPIOFunc>
+    b200:	e3a01009 	mov	r1, #9
+    b204:	e3a00001 	mov	r0, #1
+    b208:	ebffffbd 	bl	b104 <SetGPIOFunc>
+    b20c:	e3a0100a 	mov	r1, #10
+    b210:	e3a00000 	mov	r0, #0
+    b214:	ebffffba 	bl	b104 <SetGPIOFunc>
+    b218:	e8bd8030 	pop	{r4, r5, pc}
+
+0000b21c <ReadSNES>:
+    b21c:	e92d4030 	push	{r4, r5, lr}
+    b220:	e3a04000 	mov	r4, #0
+    b224:	e3a0000b 	mov	r0, #11
+    b228:	e3a01001 	mov	r1, #1
+    b22c:	ebffffce 	bl	b16c <WriteGPIO>
+    b230:	e3a00009 	mov	r0, #9
+    b234:	e3a01001 	mov	r1, #1
+    b238:	ebffffcb 	bl	b16c <WriteGPIO>
+    b23c:	e3a0000c 	mov	r0, #12
+    b240:	ebffffe1 	bl	b1cc <Wait>
+    b244:	e3a00009 	mov	r0, #9
+    b248:	e3a01000 	mov	r1, #0
+    b24c:	ebffffc6 	bl	b16c <WriteGPIO>
+    b250:	e3a05000 	mov	r5, #0
+
+0000b254 <pulseLoop>:
+    b254:	e3a00006 	mov	r0, #6
+    b258:	ebffffdb 	bl	b1cc <Wait>
+    b25c:	e3a0000b 	mov	r0, #11
+    b260:	e3a01000 	mov	r1, #0
+    b264:	ebffffc0 	bl	b16c <WriteGPIO>
+    b268:	e3a00006 	mov	r0, #6
+    b26c:	ebffffd6 	bl	b1cc <Wait>
+    b270:	e3a0000a 	mov	r0, #10
+    b274:	ebffffcb 	bl	b1a8 <ReadGPIO>
+    b278:	e1a00510 	lsl	r0, r0, r5
+    b27c:	e1844000 	orr	r4, r4, r0
+    b280:	e3a0000b 	mov	r0, #11
+    b284:	e3a01001 	mov	r1, #1
+    b288:	ebffffb7 	bl	b16c <WriteGPIO>
+    b28c:	e2855001 	add	r5, r5, #1
+    b290:	e3550010 	cmp	r5, #16
+    b294:	baffffee 	blt	b254 <pulseLoop>
+    b298:	e1a00004 	mov	r0, r4
+
+0000b29c <done>:
+    b29c:	e8bd8030 	pop	{r4, r5, pc}
+
+0000b2a0 <uhohLoop$>:
+    b2a0:	eafffffe 	b	b2a0 <uhohLoop$>
+
+0000b2a4 <main>:
+    b2a4:	e3a0d902 	mov	sp, #32768	; 0x8000
+    b2a8:	ebffff72 	bl	b078 <EnableJTAG>
+    b2ac:	ebffff53 	bl	b000 <InitFrameBufferInt>
+
+0000b2b0 <ready>:
+    b2b0:	e59f0024 	ldr	r0, [pc, #36]	; b2dc <haltLoop$+0x4>
+    b2b4:	e5900024 	ldr	r0, [r0, #36]	; 0x24
+    b2b8:	e3500000 	cmp	r0, #0
+    b2bc:	0afffff7 	beq	b2a0 <uhohLoop$>
+
+0000b2c0 <testo>:
+    b2c0:	e3a00064 	mov	r0, #100	; 0x64
+    b2c4:	e3a01064 	mov	r1, #100	; 0x64
+    b2c8:	eb000004 	bl	b2e0 <DrawPixel>
+    b2cc:	ebffffc7 	bl	b1f0 <InitSNES>
+
+0000b2d0 <inputLoop$>:
+    b2d0:	ebffffd1 	bl	b21c <ReadSNES>
+    b2d4:	eafffffd 	b	b2d0 <inputLoop$>
+
+0000b2d8 <haltLoop$>:
+    b2d8:	eafffffe 	b	b2d8 <haltLoop$>
+    b2dc:	0000a000 	.word	0x0000a000
+
+0000b2e0 <DrawPixel>:
+    b2e0:	e59f2048 	ldr	r2, [pc, #72]	; b330 <DrawPixel+0x50>
+    b2e4:	e5922020 	ldr	r2, [r2, #32]
+    b2e8:	e5923004 	ldr	r3, [r2, #4]
+    b2ec:	e2433001 	sub	r3, r3, #1
+    b2f0:	e1510003 	cmp	r1, r3
+    b2f4:	81a0f00e 	movhi	pc, lr
+    b2f8:	e5923000 	ldr	r3, [r2]
+    b2fc:	e2433001 	sub	r3, r3, #1
+    b300:	e1500003 	cmp	r0, r3
+    b304:	81a0f00e 	movhi	pc, lr
+    b308:	e59f2020 	ldr	r2, [pc, #32]	; b330 <DrawPixel+0x50>
+    b30c:	e5922020 	ldr	r2, [r2, #32]
+    b310:	e2833001 	add	r3, r3, #1
+    b314:	e0200391 	mla	r0, r1, r3, r0
+    b318:	e0822080 	add	r2, r2, r0, lsl #1
+    b31c:	e3e03000 	mvn	r3, #0
+    b320:	e1d330b0 	ldrh	r3, [r3]
+    b324:	e1c230b0 	strh	r3, [r2]
+    b328:	e1a0f00e 	mov	pc, lr
+    b32c:	e12fff1e 	bx	lr
+    b330:	0000a000 	.word	0x0000a000

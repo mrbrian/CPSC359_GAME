@@ -1,0 +1,143 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD build/mailbox.o
+LOAD build/jtag.o
+LOAD build/helper.o
+LOAD build/snes.o
+LOAD build/font.o
+LOAD build/main.o
+LOAD build/graphics.o
+
+.init           0x00008000        0x4
+ *(.init)
+ .init          0x00008000        0x4 build/main.o
+                0x00008000                _start
+
+.data           0x00009080     0x1f80
+ *(.data)
+ .data          0x00009080        0x0 build/mailbox.o
+ .data          0x00009080        0x0 build/jtag.o
+ .data          0x00009080        0x0 build/helper.o
+ .data          0x00009080        0x0 build/snes.o
+ .data          0x00009080      0x800 build/font.o
+ .data          0x00009880        0x0 build/main.o
+ *fill*         0x00009880      0x780 3f3f3f3f
+ .data          0x0000a000     0x1000 build/graphics.o
+                0x0000a000                FrameBufferInfo
+ *.c.o(*)
+
+.igot.plt       0x0000b000        0x0
+ .igot.plt      0x00000000        0x0 build/mailbox.o
+
+.text           0x0000b000      0x334
+ *.c.o(.text)
+ *(.text)
+ .text          0x0000b000       0x78 build/mailbox.o
+                0x0000b000                InitFrameBufferInt
+ .text          0x0000b078       0x8c build/jtag.o
+                0x0000b078                EnableJTAG
+ .text          0x0000b104       0xec build/helper.o
+                0x0000b104                SetGPIOFunc
+                0x0000b13c                GetGPIOFunc
+                0x0000b16c                WriteGPIO
+                0x0000b1a8                ReadGPIO
+                0x0000b1cc                Wait
+ .text          0x0000b1f0       0xb0 build/snes.o
+                0x0000b1f0                InitSNES
+                0x0000b21c                ReadSNES
+ .text          0x0000b2a0        0x0 build/font.o
+ .text          0x0000b2a0       0x40 build/main.o
+ .text          0x0000b2e0       0x54 build/graphics.o
+                0x0000b2e0                DrawPixel
+OUTPUT(build/output.elf elf32-littlearm)
+
+.glue_7         0x0000b334        0x0
+ .glue_7        0x00000000        0x0 linker stubs
+
+.glue_7t        0x0000b334        0x0
+ .glue_7t       0x00000000        0x0 linker stubs
+
+.vfp11_veneer   0x0000b334        0x0
+ .vfp11_veneer  0x00000000        0x0 linker stubs
+
+.v4_bx          0x0000b334        0x0
+ .v4_bx         0x00000000        0x0 linker stubs
+
+.iplt           0x0000b334        0x0
+ .iplt          0x00000000        0x0 build/mailbox.o
+
+.rel.dyn        0x0000b334        0x0
+ .rel.iplt      0x00000000        0x0 build/mailbox.o
+
+.bss            0x0000b334        0x0
+ .bss           0x0000b334        0x0 build/mailbox.o
+ .bss           0x0000b334        0x0 build/jtag.o
+ .bss           0x0000b334        0x0 build/helper.o
+ .bss           0x0000b334        0x0 build/snes.o
+ .bss           0x0000b334        0x0 build/font.o
+ .bss           0x0000b334        0x0 build/main.o
+ .bss           0x0000b334        0x0 build/graphics.o
+
+.ARM.attributes
+                0x00000000       0x26
+ .ARM.attributes
+                0x00000000       0x26 build/mailbox.o
+ .ARM.attributes
+                0x00000026       0x26 build/jtag.o
+ .ARM.attributes
+                0x0000004c       0x26 build/helper.o
+ .ARM.attributes
+                0x00000072       0x26 build/snes.o
+ .ARM.attributes
+                0x00000098       0x26 build/font.o
+ .ARM.attributes
+                0x000000be       0x26 build/main.o
+ .ARM.attributes
+                0x000000e4       0x26 build/graphics.o
+
+.debug_line     0x00000000      0x255
+ .debug_line    0x00000000       0x5f build/mailbox.o
+ .debug_line    0x0000005f       0x61 build/jtag.o
+ .debug_line    0x000000c0       0x7d build/helper.o
+ .debug_line    0x0000013d       0x66 build/snes.o
+ .debug_line    0x000001a3       0x5b build/main.o
+ .debug_line    0x000001fe       0x57 build/graphics.o
+
+.debug_info     0x00000000      0x27d
+ .debug_info    0x00000000       0x6f build/mailbox.o
+ .debug_info    0x0000006f       0x5c build/jtag.o
+ .debug_info    0x000000cb       0x6e build/helper.o
+ .debug_info    0x00000139       0x6c build/snes.o
+ .debug_info    0x000001a5       0x68 build/main.o
+ .debug_info    0x0000020d       0x70 build/graphics.o
+
+.debug_abbrev   0x00000000       0x76
+ .debug_abbrev  0x00000000       0x14 build/mailbox.o
+ .debug_abbrev  0x00000014       0x14 build/jtag.o
+ .debug_abbrev  0x00000028       0x14 build/helper.o
+ .debug_abbrev  0x0000003c       0x14 build/snes.o
+ .debug_abbrev  0x00000050       0x12 build/main.o
+ .debug_abbrev  0x00000062       0x14 build/graphics.o
+
+.debug_aranges  0x00000000       0xc8
+ .debug_aranges
+                0x00000000       0x20 build/mailbox.o
+ .debug_aranges
+                0x00000020       0x20 build/jtag.o
+ .debug_aranges
+                0x00000040       0x20 build/helper.o
+ .debug_aranges
+                0x00000060       0x20 build/snes.o
+ .debug_aranges
+                0x00000080       0x28 build/main.o
+ .debug_aranges
+                0x000000a8       0x20 build/graphics.o
+
+.debug_ranges   0x00000000       0x20
+ .debug_ranges  0x00000000       0x20 build/main.o
