@@ -1,65 +1,26 @@
 .section .text
 
-.globl	DrawPixel
+.globl	DrawPixel16bpp
+/* Draw Pixel to a 1024x768x16bpp frame buffer
+ * Note: no bounds checking on the (X, Y) coordinate
+ *	r0 - frame buffer pointer
+ *	r1 - pixel X coord
+ *	r2 - pixel Y coord
+ *	r3 - colour (use low half-word)
+ */
+DrawPixel16bpp:
+	push	{r4}
 
-DrawPixel:
-	px	.req	r0
-	py	.req	r1
-	addr	.req	r2
+	offset	.req	r4
 
-	ldr	addr,	=FrameBufferInfo
-	ldr	addr,	[addr, #32]
-	
-	height	.req	r3
-	ldr	height,	[addr, #4]
-	sub	height,	#1
-	cmp	py,	height
-	movhi	pc,	lr
+	// offset = (y * 1024) + x = x + (y << 10)
+	add		offset,	r1, r2, lsl #10
+	// offset *= 2 (for 16 bits per pixel = 2 bytes per pixel)
+	lsl		offset, #1
 
-	.unreq	height
-	width	.req	r3
+	// store the colour (half word) at framebuffer pointer + offset
+	strh	r3,		[r0, offset]
 
-	ldr	width,	[addr, #0]
-	sub	width,	#1
-	cmp	px,	width
-	movhi	pc,	lr
-	
-	ldr	addr,	=FrameBufferInfo
-	ldr	addr,	[addr, #32]
-	
-	add	width,	#1
-	mla	px,	py,	width, px	// px = (py*width)+px	
-	.unreq	width
-	.unreq	py
-	
-	add	addr,	px,	lsl #1
-	.unreq	px
-
-	fore	.req	r3
-	ldr	fore,	=0xFFFFFFFF
-	ldrh	fore,	[fore]
-	strh	fore,	[addr]
-	
-	.unreq	fore
-	.unreq	addr
-
-	mov	pc,	lr	
-
-	bx	lr
-
-.section .data
-.align 12
-
-.globl FrameBufferInfo
-FrameBufferInfo:
-	.int    1024    // 0 - Width
-	.int    768     // 4 - Height
-	.int    1024    // 8 - vWidth
-	.int    768   	// 12 - vHeight
-	.int    0       // 16 - GPU - Pitch
-	.int    16      // 20 - Bit Depth
-	.int    0       // 24 - X
-	.int    0       // 28 - Y
-	.int    0       // 32 - GPU - Pointer
-	.int    0       // 36 - GPU - Size
+	pop		{r4}
+	bx		lr
 

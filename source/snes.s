@@ -75,13 +75,19 @@ pulseLoop:
 	cmp	r5,	#16	// if i < 16
 	bLT	pulseLoop
 
-	mov	r0,	buttons
-	
-	.unreq	buttons
 done:
+	mov	r0,	buttons		
+	ldr	r1,	=SNESpad	
+	str	buttons, [r1]	
+
+	.unreq	buttons	
 	pop	{r4, r5, pc}
 
 
 
+.section .data
+.align 4
 
-
+.globl	SNESpad
+SNESpad:
+	.int	0	

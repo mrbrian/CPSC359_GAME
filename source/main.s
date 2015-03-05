@@ -6,29 +6,25 @@ _start:
     
 .section .text
 
-uhohLoop$:
-	b		uhohLoop$
 main:
     mov     sp, #0x8000
-	
-	bl	EnableJTAG
-	bl	InitFrameBufferInt	// not working..
-ready:	
-	ldr	r0,	=FrameBufferInfo
-	ldr	r0,	[r0, #36]
-	cmp	r0,	#0
-	beq	uhohLoop$
+			
+	bl		EnableJTAG
 
-testo:	
-	mov	r0,	#100
-	mov	r1,	#100
-	bl	DrawPixel
+	bl		InitFrameBuffer
+
+	// branch to the halt loop if there was an error initializing the framebuffer
+	cmp		r0, #0
+	beq		haltLoop$
+
+	mov	r1,	#100	
+	mov	r2,	#100
+	ldr	r3,	=0xFFFF
+	bl	DrawPixel16bpp  
 
 	bl	InitSNES
 inputLoop$:
 	bl	ReadSNES
-	b	inputLoop$
-
 haltLoop$:
 	b		haltLoop$
 
