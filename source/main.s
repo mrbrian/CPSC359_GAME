@@ -2,11 +2,9 @@
 .globl     _start
 
 _start:
-    b       main
+    b       testMain
+    //b       main
 
-testStr:
-.asciz	"TEST"
-.align 	4
 .section .text
 
 main:
@@ -32,12 +30,6 @@ gameLoop$:
 drawLoop$:
 	
 	bl	UpdatePlayer
-
-	ldr	r0,	=testStr
-	mov	r1,	#0
-	mov	r2,	#0
-	ldr	r3,	=0xFFFF
-	bl	DrawString
 
 	ldr	r0,	=0x1000
 	bl	Wait
