@@ -1,0 +1,50 @@
+struct	rect
+	half	x,y
+	byte 	w,h
+
+class object
+	rect	rect
+	byte	hitpoints
+	byte	value
+	
+class AI
+
+class entity	: object		
+	void move()
+	void shoot()	
+
+	update(input)
+
+class Pawn	: entity
+class Knight 	: entity
+class Queen	: entity
+class Player	: entity
+	
+class Bullet		
+	byte	vx,	vy
+	
+class Game
+	stack objects
+
+	void updateScene()
+
+	//update movements
+
+	//deal damage	
+
+	void eraseScene()
+	void drawScene()
+	
+	void drawObject(type)
+	
+	void aiUpdate()
+		
+	void move(entity)
+
+	void onHit(bullet,	obj)
+		subtract hitpoints
+		
+	bool detectHit(obj1, obj2)		
+		//void clearObject()	you can't pop an object in the middle of the stack..
+
+	fifo.. queue. for bullets?

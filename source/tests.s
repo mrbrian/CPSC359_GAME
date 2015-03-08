@@ -5,20 +5,7 @@ testStr:
 .align 	4
 
 .globl	testMain
-
 testMain:
-    mov     sp, #0x8000
-			
-	bl		EnableJTAG
-	bl		InitFrameBuffer
-
-	// branch to the halt loop if there was an error initializing the framebuffer
-	cmp		r0, #0
-	beq		haltLoop$
-	
-	ldr	r1,	=FrameBufferPointer
-	str	r0,	[r1]
-
 	bl	InitSNES
 	mov	r4,	#100	
 	mov	r5,	#200
@@ -43,18 +30,18 @@ myTest:
 	ldr	r3,	=0xFF0F
 	ldr	r4,	=1023
 	ldr	r5,	=767
-	stmfd	sp!,	{r1-r5}
+	push	{r1-r5}
 	bl	DrawEmptyRectangle
-	ldmfd	sp!,	{r1-r5}
+	pop	{r1-r5}
 
 	mov	r1,	#100
 	mov	r2,	#100
 	ldr	r3,	=0xFF0F
 	ldr	r4,	=500
 	ldr	r5,	=17
-	stmfd	sp!,	{r1-r5}
+	push	{r1-r5}
 	bl	DrawEmptyRectangle
-	ldmfd	sp!,	{r1-r5}
+	pop	{r1-r5}
 
 	ldr	r0,	=testStr
 	mov	r1,	#300

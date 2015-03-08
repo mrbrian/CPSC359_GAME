@@ -2,8 +2,7 @@
 .globl     _start
 
 _start:
-    b       testMain
-    //b       main
+    b       main
 
 .section .text
 
@@ -16,9 +15,11 @@ main:
 	// branch to the halt loop if there was an error initializing the framebuffer
 	cmp		r0, #0
 	beq		haltLoop$
-	
+
 	ldr	r1,	=FrameBufferPointer
 	str	r0,	[r1]
+
+	b       testGame
 
 	bl	InitSNES
 	mov	r4,	#100	

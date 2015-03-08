@@ -10,8 +10,8 @@ DrawEmptyRectangle:
 	px	.req	r1
 	py	.req	r2
 	color	.req	r3	
-	ldr	r0,	[sp, #20]	// height
 
+	ldr	r0,	[sp, #20]	// height
 	bl	DrawVerticalLine
 		
 	ldr	size,	[sp, #16]	// width
@@ -35,7 +35,6 @@ DrawEmptyRectangle:
 	ldr	px,	[sp, #4]	// width
 	ldr	color,	[sp, #12]	// color
 	bl	DrawHorizontalLine
-
 
 	.unreq	size
 	.unreq	px
