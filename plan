@@ -1,11 +1,12 @@
 struct	rect
-	half	x,y
+	byte	x,y
 	byte 	w,h
 
 class object
 	rect	rect
 	byte	hitpoints
 	byte	value
+	hword	color
 	
 class AI
 
@@ -21,7 +22,10 @@ class Queen	: entity
 class Player	: entity
 	
 class Bullet		
-	byte	vx,	vy
+	byte	x, y
+	byte	dir
+	byte	w, h
+	hword	color
 	
 class Game
 	stack objects
@@ -48,3 +52,49 @@ class Game
 		//void clearObject()	you can't pop an object in the middle of the stack..
 
 	fifo.. queue. for bullets?
+	
+use sprites?	build color into the .bin file?	2 bytes per pixel.
+
+make bullets move!!
+
+Player shoots a bullet
+	offset position
+	is pos in boundaries?
+	Init a bullet in front of player
+	check if bullet hits.
+
+Player moves a spot
+	Get dir from SNES input 
+	Offset position
+	is ValidMove?
+		object in that spot?
+	Store new direction.
+	Get hit by any enemy bullets in that spot
+	UpdateGame
+		AIs move
+		check bullet hits
+		Move bullets
+		check bullet hits
+
+Player bullet hit only enemies
+enemy bullets hit only player
+
+Enemy bullet moves
+	offset position
+	in boundaries?
+	store in new position
+	hit any obstacles?
+	hit player?
+		then do hit.
+		
+Player bullet moves
+	offset position
+	in boundaries?
+	store in new position
+	hit any obstacles?
+	hit any enemies?
+		then do hit.
+	
+Game
+Player.s	player logic
+object.s	moveObject

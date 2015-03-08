@@ -4,12 +4,43 @@
 .equ	MAX_PX,		31
 .equ	MAX_PY,		23
 
+OBJ_X = 0
+OBJ_Y = 1
+OBJ_W = 2
+OBJ_H = 3
+OBJ_VAL = 4
+OBJ_HP = 5
+OBJ_CLR = 6
+		
 .globl	testGame
+
+moveTest$:		// move an object test
+	bne	moveTest$
+	
+firetest$:		// shoot a bullet test
+	ldr r0,	=pawns_m	
+	ldr r2,	[r0]
+	add	r2,	#1
+	ldr r3,	[r0, #1]	
+	mov	r1,	#2
+	bl	FireBullet
+	ldr	r0,	=bullets_m
+	ldr	r4,	[r0]
+	ldr	r5,	[r0, #1]	
+	cmp	r2,	r4
+	bne	firetest$
+	cmp	r3,	r5
+	bne	firetest$
+	ldr	r4,	[r0, #5]
+	cmp	r4,	#1
+	bne	firetest$
+		
+hittest$:		// bullet hit test
+
 testGame:
 	ldr	r0,	=pawns_m
 	mov	r1,	r0
 	bl	DetectHit
-
 	bl	InitGame
 
 	ldr	r0,	=pawns_m
@@ -32,7 +63,8 @@ testGameLoop:
 	bl	UpdateScene
 	b	testGameLoop
 
-.globl	InitGame	// position the game objects
+/* Position the game objects */
+.globl	InitGame	
 InitGame:
 	objPtr	.req	r2	
 	px	.req	r3
@@ -105,9 +137,14 @@ InitGame:
 
 	bx	lr
 
+/* Updates the positions of all game objects */
 UpdateScene:
+	//bl	UpdateAI
+	//bl	UpdatePlayerBullet
+	//bl	UpdateEnemyBullets	
 	bx	lr
-
+	
+/* Draw all objects */
 DrawScene:
 	push	{r4-r5,	lr}
 
@@ -153,42 +190,82 @@ drawLoop:				// draw each object
 	bl	DrawString
 
 	pop	{r4-r5, pc}
-
-.globl	MoveObject	//(ptr obj_m, byte dir)
-MoveObject:
-	obj_m	.req	r0
-	dir	.req	r1
-	px	.req	r2
-	py	.req	r3
-
-	ldrb	px,	[obj_m]
-	ldrb	py,	[obj_m, #1]
-	cmp	py,	#0
-	tstne	dir,	#1
-	subne	py,	#1
 	
-	cmp	px,	#MAX_PX
-	tstne	dir,	#2
-	addne	px,	#1
+/* Checks if a position has an obstacle or object */
+ValidMove:	// (int x, int y) : bool
+	push	{r4}
+	addr	.req	r2
+	count	.req	r3
+	numObj	.req	r4
+	px	.req	r5
+	py	.req	r6
+	result	.req	r7
 	
-	cmp	py,	#MAX_PY
-	tstne	dir,	#4
-	addne	py,	#1
-
-	cmp	px,	#0
-	tstne	dir,	#8
-	subne	px,	#1
-
-	strb	px,	[obj_m]
-	strb	py,	[obj_m, #1]
-
-	.unreq	obj_m	
-	.unreq	dir	
-	.unreq	px	
-	.unreq	py	
-
+	mov	result,	#0
+	cmp	r0,	#0
+	blt	vmdone
+	cmp	r0,	#MAX_X
+	bge	vmdone
+	cmp	r1,	#0
+	blt	vmdone
+	cmp	r1,	#MAX_Y
+	bge	vmdone
+	
+	mov	result,	#1
+	ldr	r3,	=NumOfObjects
+	ldr	r3,	[r3]
+	ldr	addr,	=pawns_m
+vmloop:			// loop through all objects
+	cmp	count,	numObj
+	bge	vmdone
+	ldr	px,	[addr, #OBJ_X]
+	cmp	r0,	px
+	bne	vmloopinc
+	ldr	py,	[addr, #OBJ_Y]
+	cmp	r1,	py
+	mov	result,	#0	// if any object is the same position, then move is invalid
+	beq	vmdone
+vmloopinc:
+	add	addr,	#OBJSIZE
+	add	count,	#1
+	b	vmloop
+vmdone:
+	.unreq	addr
+	.unreq	count
+	.unreq	numObj
+	.unreq	px
+	.unreq	py
+	mov	r0,	result
+	.unreq	result
 	bx	lr
 
+/* Return x, y, offset by the direction */
+// (x, y, dir): new x, new y      on stack
+OffsetPosition:	
+	px	.req	r4
+	py	.req	r5
+	dir	.req	r6
+	
+	pop	{r0-r2}
+	tst	dir,	#1
+	subne	py,	#1
+	
+	tst	dir,	#2
+	addne	px,	#1
+	
+	tst	dir,	#4
+	addne	py,	#1
+
+	tst	dir,	#8
+	subne	px,	#1
+
+	.unreq	px
+	.unreq	py
+	.unreq	dir
+	push {r0,r1}
+	bx	lr
+
+/* Checks if obj1 occupies the same spot as obj2 */
 .globl	DetectHit	//(obj1_m, obj2_m)	pointers
 DetectHit:	
 	obj1_m	.req	r0
@@ -222,11 +299,13 @@ scoreStr:
 	.asciz	"SCORE:"
 
 .align 4
+GameState:
+	.byte	0	// menu_off, menu_on
+	.int	0	// normal, won, lost, restart, quit
 Score:
 	.int	100
 pawns_m:
 	.rept	10	// 10 pawns
-
 	.byte	0	// x
 	.byte	0	// y
 	.byte 	8	// w	
@@ -235,7 +314,6 @@ pawns_m:
 	.byte	5	// value 
 	.hword	0xFFE0	// color
 	.endr
-
 knights_m:
 	.rept	5	// 5 knights
 	.byte	16	// x
@@ -269,11 +347,12 @@ obstacles_m:
 NumOfObjects:
 	.int	(.-pawns_m) / OBJSIZE	// 8 bytes per object
 bullets_m:		
-	.rept	18
+	.rept	18	// 1 bullet allocated for each object
 	.byte	0	// x
 	.byte	0	// y
 	.byte 	32	// w	
 	.byte 	32	// h
 	.byte	0	// direction
+	.byte	0	// flags
 	.hword	0xFFFF	// color
 	.endr
