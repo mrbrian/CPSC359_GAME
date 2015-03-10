@@ -1,8 +1,149 @@
+.include "constants.s"
+
 .section .text
 
 testStr:
 .asciz	"TEST"
 .align 	4
+
+.globl	testGame
+
+testGame:
+moveTest$:		// move an object test
+	
+//	bne	moveTest$
+	
+firetest$:		// shoot a bullet test
+	ldr r0,	=pawns_m	
+	mov	r1,	#2
+	bl	FireBullet
+	ldr	r0,	=bullets_m
+	ldrb	r4,	[r0, #BUL_X]
+	ldrb	r5,	[r0, #BUL_Y]	
+	cmp	r4,	#1
+	bne	firetest$
+	cmp	r5,	#0
+	bne	firetest$
+	ldrb	r4,	[r0, #BUL_DIR]
+	cmp	r4,	#2
+	ldrb	r4,	[r0, #BUL_FLG]
+	cmp	r4,	#1
+	bne	firetest$
+	
+	ldr	r0,	=bullets_m
+	ldrb	r1,	[r0, #BUL_DIR]
+	bl	MoveBullet
+
+	ldr	r0,	=bullets_m
+	ldrb	r4,	[r0, #BUL_X]
+	ldrb	r5,	[r0, #BUL_Y]	
+	cmp	r4,	#2
+	bne	firetest$
+	cmp	r5,	#0
+	bne	firetest$
+
+	ldr	r0,	=bullets_m
+	mov	r1,	#4
+	bl	MoveBullet
+
+	ldr	r0,	=bullets_m
+	ldrb	r4,	[r0, #BUL_X]
+	ldrb	r5,	[r0, #BUL_Y]	
+	ldrb	r6,	[r0, #BUL_DIR]	
+	cmp	r4,	#2
+	bne	firetest$
+	cmp	r5,	#1
+	bne	firetest$
+	cmp	r6,	#4
+	bne	firetest$
+
+updatetest$:
+	bl	UpdateEnemyBullets
+	ldr	r0,	=bullets_m
+	ldrb	r4,	[r0, #BUL_X]
+	cmp	r4,	#2
+	bne	updatetest$
+	ldrb	r4,	[r0, #BUL_Y]	
+	cmp	r4,	#2
+	bne	updatetest$
+	ldrb	r4,	[r0, #BUL_DIR]
+	cmp	r4,	#4
+	bne	updatetest$		
+	ldrb	r4,	[r0, #BUL_FLG]
+	cmp	r4,	#1
+	bne	updatetest$	
+	
+	ldr	r0,	=pawns_m
+	mov	r1,	#2
+	strb	r1,	[r0, #OBJ_X]
+	mov	r1,	#3
+	strb	r1,	[r0, #OBJ_Y]
+
+	bl	UpdateEnemyBullets
+
+	ldr	r0,	=bullets_m
+	ldr	r1,	=pawns_m
+	bl	DetectHit
+	cmp	r0,	#1
+	ldr	r1,	=bullets_m
+	ldr	r2,	=pawns_m
+	bne	skip
+	
+	ldr	r0,	=bullets_m
+	mov	r1,	#0
+	strb	r1,	[r0, #BUL_FLG]
+
+	ldr	r0,	=pawns_m
+	ldrb	r1,	[r0, #OBJ_HP]
+	sub	r1,	#10
+	strb	r1,	[r0, #OBJ_HP]
+skip:
+
+	ldr	r0,	=pawns_m
+	ldrb	r1,	[r0, #OBJ_HP]
+	cmp	r1,	#-9
+	ldr	r0,	=bullets_m
+	ldrb	r4,	[r0, #BUL_X]
+	cmp	r4,	#2
+	bne	updatetest$
+	ldrb	r4,	[r0, #BUL_Y]	
+	cmp	r4,	#3
+	bne	updatetest$
+	ldrb	r4,	[r0, #BUL_DIR]
+	cmp	r4,	#4
+	bne	updatetest$		
+	ldrb	r4,	[r0, #BUL_FLG]
+	cmp	r4,	#0
+	bne	updatetest$		
+
+hittest$:		// bullet hit test
+
+	ldr	r0,	=pawns_m
+	mov	r1,	r0
+	bl	DetectHit
+	cmp	r0,	#1
+	bne	hittest$
+	bl	InitGame
+
+	ldr	r0,	=pawns_m
+	add	r1,	#OBJSIZE
+	bl	DetectHit
+	cmp	r0,	#1
+	beq	hittest$
+	ldr	r0,	=queens_m
+	mov	r1,	#4
+	bl	MoveObject
+	ldr	r0,	=queens_m
+	mov	r1,	#4
+	bl	MoveObject
+	ldr	r0,	=queens_m
+	mov	r1,	#8
+	bl	MoveObject
+testGameLoop:
+	ldr	r0,	=pawns_m
+	ldr	r1,	=NumOfObjects
+	bl	DrawScene
+	bl	UpdateScene
 
 .globl	testMain
 testMain:
@@ -20,8 +161,9 @@ gameLoop$:
 
 drawLoop$:	
 	bl	ClearScreen
-	//bl	ErasePlayer
 	bl	UpdatePlayer
+	bl	UpdateScene
+	bl	DrawScene
 	bl	DrawPlayer
 
 myTest:
