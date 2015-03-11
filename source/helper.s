@@ -1,10 +1,9 @@
+.include "constants.s"
 .globl SetGPIOFunc
-
-.equ	GPFSEL0,	0x20200000
 
 /* r0 = new function, r1 = pin # */
 SetGPIOFunc:
-	ldr	r2, 	=GPFSEL0 	// r2 = base addr
+	ldr	r2, 	=GPIOFSEL0 	// r2 = base addr
 
 setGPIOloop$:				
 	cmp	r1,	#9		// pin # < 9
@@ -28,7 +27,7 @@ setGPIOloop$:
 
 /* r0 = pin # */
 GetGPIOFunc:
-	ldr	r2, 	=GPFSEL0 	// r2 = base addr
+	ldr	r2, 	=GPIOFSEL0 	// r2 = base addr
 
 getGPIOloop$:				
 	cmp	r0,	#9		// pin # < 9
@@ -52,7 +51,7 @@ getGPIOloop$:
 /* r0 = pin#, r1 = value to write */
 WriteGPIO:	
 	push	{r4, r5}
-	ldr	r2,	=GPFSEL0
+	ldr	r2,	=GPIOFSEL0
 	mov	r4,	#40
 	mov	r5,	#28
 
@@ -74,7 +73,7 @@ WriteGPIO:
 /* ReadGPIOFunc(line#, value) 
 /* r0 = pin#  r1 = value */
 ReadGPIO:	
-	ldr	r2,	=GPFSEL0	// base GPIO reg
+	ldr	r2,	=GPIOFSEL0	// base GPIO reg
 	ldr	r1,	[r2,	#52]	//GPLEV0
 	mov	r3,	#1	
 	lsl	r3,	r0		// align pin3 bit

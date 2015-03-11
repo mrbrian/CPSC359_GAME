@@ -31,10 +31,10 @@ ValidObjectMove:	// (int x, int y) : bool
 vmloop:			// loop through all objects
 	cmp	count,	numObj
 	bge	vmdone
-	ldr	px,	[addr, #OBJ_X]
+	ldrb	px,	[addr, #OBJ_X]
 	cmp	r0,	px
 	bne	vmloopinc
-	ldr	py,	[addr, #OBJ_Y]
+	ldrb	py,	[addr, #OBJ_Y]
 	cmp	r1,	py
 	mov	result,	#0	// if any object is the same position, then move is invalid
 	beq	vmdone
@@ -70,8 +70,8 @@ FireBullet:		// (int ownerObj, int dir)
 	
 	.unreq	offs
 	
-	ldrb	px,	[owner]	// x
-	ldrb	py,	[owner, #1]	// y 	
+	ldrb	px,	[owner, #OBJ_X]	// x
+	ldrb	py,	[owner, #OBJ_Y]	// y 	
 	
 	push	{r0-r2}
 	mov	r2,	dir

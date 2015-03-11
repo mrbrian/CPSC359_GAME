@@ -1,8 +1,5 @@
 .section .text
 
-.equ scrWidth,	1024
-.equ scrHeight,	768
-
 .globl	DrawEmptyRectangle //(x,y,color,w,h) on stack
 DrawEmptyRectangle:
 	push	{lr}

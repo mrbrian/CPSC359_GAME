@@ -1,14 +1,5 @@
+.include "constants.s"
 .section .text
-
-.equ	CLOCK,	11
-.equ	DATA,	10
-.equ	LATCH,	9
-
-.equ	GPIOFSEL0,	0x20200000
-.equ	GPIOFSEL1,	0x20200004
-.equ	GPIOSET0,	0x2020001C
-.equ	GPIOCLR0,	0x20200028
-
 
 /* Initialize the SNES Controller GPIO Pins
  *	LAT (GPIO 9) - Output
@@ -142,8 +133,6 @@ done:
 
 	.unreq	buttons	
 	pop	{r4, r5, pc}
-
-
 
 .section .data
 .align 4

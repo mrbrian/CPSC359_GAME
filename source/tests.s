@@ -9,10 +9,21 @@ testStr:
 .globl	testGame
 
 testGame:
-moveTest$:		// move an object test
-	
-//	bne	moveTest$
-	
+blocktest$:
+	ldr	r0,	=player_m
+	mov	r1,	#1
+	strb	r1,	[r0, #OBJ_X]
+	mov	r1,	#0
+	strb	r1,	[r0, #OBJ_Y]
+	mov	r1,	#8
+	bl	MoveObject
+	ldr	r0,	=player_m
+	ldrb	r1, [r0, #OBJ_X]
+	cmp	r1, #1
+	bne	blocktest$
+	ldrb	r1, [r0, #OBJ_Y]
+	cmp	r1, #0
+	bne	blocktest$
 firetest$:		// shoot a bullet test
 	ldr r0,	=pawns_m	
 	mov	r1,	#2
@@ -94,6 +105,7 @@ updatetest$:
 	strb	r1,	[r0, #BUL_FLG]
 
 	ldr	r0,	=pawns_m
+testo:
 	ldrb	r1,	[r0, #OBJ_HP]
 	sub	r1,	#10
 	strb	r1,	[r0, #OBJ_HP]
@@ -101,7 +113,8 @@ skip:
 
 	ldr	r0,	=pawns_m
 	ldrb	r1,	[r0, #OBJ_HP]
-	cmp	r1,	#-9
+	cmp	r1,	#0
+	bne	updatetest$
 	ldr	r0,	=bullets_m
 	ldrb	r4,	[r0, #BUL_X]
 	cmp	r4,	#2
