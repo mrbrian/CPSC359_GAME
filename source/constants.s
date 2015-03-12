@@ -14,18 +14,21 @@ GPIOCLR0	= 0x20200028
 GPIOLEV0	= 0x20200034
 
 TILESIZE	= 32 
-OBJSIZE 	= 8
 MAX_PX 		= 31
 MAX_PY 		= 23
 
+OBJ_SIZE 	= 10
 OBJ_X 		= 0
 OBJ_Y 		= 1
 OBJ_W 		= 2
 OBJ_H 		= 3
 OBJ_HP 		= 4
 OBJ_VAL 	= 5
-OBJ_CLR 	= 6
-
+OBJ_DIR 	= 6
+OBJ_IDX 	= 7
+OBJ_CLR 	= 8
+ 
+BUL_SIZE 	= 8
 BUL_X 		= 0
 BUL_Y 		= 1
 BUL_W 		= 2

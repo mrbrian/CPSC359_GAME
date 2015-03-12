@@ -13,11 +13,15 @@ UpdatePlayer:
 	ldr	r3,	[r1, #4]
 shoot:
 	tst	r0,	#0b100000000	// a button	
-	beq	done
+	bne	horz
+	mov	r0,	r1
+	ldrb	r1,	[r1, #OBJ_DIR]
+	bl	FireBullet
+	b	done
 horz:
 	tst	r0,	#0b1000000	// left
-	moveq	r0,	r1
-	moveq	r1,	#8
+	moveq	r0,	r1	// arg1 = object
+	moveq	r1,	#8	// arg2 = direction
 	bleq	MoveObject
 	beq	done
 	tst	r0,	#0b10000000	// right

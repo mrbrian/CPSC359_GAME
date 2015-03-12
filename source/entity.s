@@ -36,10 +36,10 @@ vmloop:			// loop through all objects
 	bne	vmloopinc
 	ldrb	py,	[addr, #OBJ_Y]
 	cmp	r1,	py
-	mov	result,	#0	// if any object is the same position, then move is invalid
+	moveq	result,	#0	// if any object is the same position, then move is invalid
 	beq	vmdone
 vmloopinc:
-	add	addr,	#OBJSIZE
+	add	addr,	#OBJ_SIZE
 	add	count,	#1
 	b	vmloop
 vmdone:
@@ -55,18 +55,20 @@ vmdone:
 /* Intialize a bullet */
 .globl	FireBullet
 FireBullet:		// (int ownerObj, int dir)	
-	push	{r4,r5,lr}
+	push	{r4-r7,lr}
 	owner	.req	r0
 	dir	.req	r1
 	addr	.req	r2
 	offs	.req	r3
 	px	.req	r4
 	py	.req	r5
-	
-	ldr	offs,	=pawns_m	
-	sub	offs,	owner,	offs	// find mem offset from base address
-	ldr	addr,	=bullets_m	
-	add	addr,	offs	// add mem offset to bullets base address
+	index	.req	r6
+	ldr	offs,	=player_m	
+	ldrb	index,	[offs, #OBJ_IDX]
+
+	ldr	addr,	=bullets_m
+	mov	r7, 	#BUL_SIZE	
+	mla	addr,	index,	r7,	addr
 	
 	.unreq	offs
 	
@@ -80,7 +82,7 @@ FireBullet:		// (int ownerObj, int dir)
 	bl	OffsetPosition
 	mov	px,	r0
 	mov	py,	r1
-after:
+
 	cmp	px,	#0	// is it in area bounds
 	blt	fireskip
 	cmp	px,	#32	// is it in area bounds
@@ -107,7 +109,7 @@ after:
 	mov	r3,	#1	// set active flag on	0=inactive 1=playerbullet 2=enemybullet
 	strb	r3,	[addr, #BUL_FLG]	
 	
-	ldrh	r3,	[owner, #BUL_CLR]	// same color as owner 
+	ldrh	r3,	[owner, #OBJ_CLR]	// same color as owner 
 	strh	r3,	[addr, #BUL_CLR]	
 fireskip:
 	.unreq	owner
@@ -115,8 +117,9 @@ fireskip:
 	.unreq	addr
 	.unreq	px
 	.unreq	py
+	.unreq	index
 	
-	pop	{r4,r5,pc}
+	pop	{r4-r7,pc}
 	
 /* Moves an object along cardinal directions according to the LS 4 bits of dir */
 .globl	MoveObject	//(int obj_m, byte dir)
@@ -143,6 +146,7 @@ MoveObject:
 	bne	modone
 	strb	px,	[obj_m, #OBJ_X]
 	strb	py,	[obj_m, #OBJ_Y]
+	strb	dir,	[obj_m, #OBJ_DIR]
 modone:
 	.unreq	obj_m	
 	.unreq	dir	

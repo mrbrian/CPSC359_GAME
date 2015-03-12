@@ -9,6 +9,67 @@ testStr:
 .globl	testGame
 
 testGame:
+
+blocktest2$:
+/*	bl	InitGame
+	ldr	r0,	=pawns_m
+	add	r0,	#OBJ_SIZE
+	add	r0,	#OBJ_SIZE
+	add	r0,	#OBJ_SIZE
+	add	r0,	#OBJ_SIZE
+	add	r0,	#OBJ_SIZE
+
+	ldrb	r1,	[r0, #OBJ_X]
+	ldrb	r2,	[r0, #OBJ_Y]
+	cmp	r1, #26
+	bne	blocktest2$
+	cmp	r2, #7
+	bne	blocktest2$
+
+	ldr	r0,	=player_m
+	mov	r1,	#26
+	strb	r1,	[r0, #OBJ_X]
+	mov	r1,	#6
+	strb	r1,	[r0, #OBJ_Y]
+	mov	r1,	#4
+	bl	MoveObject
+	ldr	r0,	=player_m
+	ldrb	r1, [r0, #OBJ_X]
+	cmp	r1, #26
+	bne	blocktest2$
+	ldrb	r1, [r0, #OBJ_Y]
+	cmp	r1, #6
+	bne	blocktest2$
+*/
+numtest$:
+	ldr	r0,	=pawns_m
+	ldrb	r1,	[r0, #OBJ_IDX]
+	cmp	r1,	#0	
+	bne	numtest$
+	ldr	r0,	=NumOfObjects
+	ldr	r1,	[r0]
+	cmp	r1, #47
+	bne	numtest$
+numtest2$:
+	ldr	r0,	=pawns_m
+	ldrh	r1,	[r0, #OBJ_CLR]
+	ldr	r2, 	=0xFFE0
+	cmp	r1, 	r2
+	bne	numtest2$
+/*bullettest$:
+	ldr	r0,	=bullets_m
+	mov	r1,	#1
+	strb	r1,	[r0, #BUL_X]
+	mov	r1,	#0
+	strb	r1,	[r0, #BUL_Y]
+	mov	r1,	#1
+	strh	r1,	[r0, #BUL_CLR]	
+	mov	r1,	#8
+	bl	MoveBullet
+	ldr	r0,	=bullets_m
+	ldrh	r0,	[r0, #BUL_CLR]
+	cmp	r0,	#0
+	bne	bullettest$*/
 blocktest$:
 	ldr	r0,	=player_m
 	mov	r1,	#1
@@ -90,8 +151,10 @@ updatetest$:
 	mov	r1,	#3
 	strb	r1,	[r0, #OBJ_Y]
 
+	ldrb	r8,	[r0, #OBJ_HP]
 	bl	UpdateEnemyBullets
 
+testo:
 	ldr	r0,	=bullets_m
 	ldr	r1,	=pawns_m
 	bl	DetectHit
@@ -99,21 +162,17 @@ updatetest$:
 	ldr	r1,	=bullets_m
 	ldr	r2,	=pawns_m
 	bne	skip
-	
 	ldr	r0,	=bullets_m
 	mov	r1,	#0
 	strb	r1,	[r0, #BUL_FLG]
 
-	ldr	r0,	=pawns_m
-testo:
-	ldrb	r1,	[r0, #OBJ_HP]
-	sub	r1,	#10
-	strb	r1,	[r0, #OBJ_HP]
 skip:
 
 	ldr	r0,	=pawns_m
 	ldrb	r1,	[r0, #OBJ_HP]
-	cmp	r1,	#0
+	sub	r8,	#10
+	cmp	r1,	r8
+
 	bne	updatetest$
 	ldr	r0,	=bullets_m
 	ldrb	r4,	[r0, #BUL_X]
@@ -132,6 +191,8 @@ skip:
 hittest$:		// bullet hit test
 
 	ldr	r0,	=pawns_m
+	mov	r1,	#10
+	strb	r1,	[r0, #OBJ_HP]
 	mov	r1,	r0
 	bl	DetectHit
 	cmp	r0,	#1
@@ -139,7 +200,7 @@ hittest$:		// bullet hit test
 	bl	InitGame
 
 	ldr	r0,	=pawns_m
-	add	r1,	#OBJSIZE
+	add	r1,	#OBJ_SIZE
 	bl	DetectHit
 	cmp	r0,	#1
 	beq	hittest$
@@ -180,7 +241,7 @@ drawLoop$:
 	bl	DrawPlayer
 
 myTest:
-	mov	r1,	#0
+	/*mov	r1,	#0
 	mov	r2,	#0
 	ldr	r3,	=0xFF0F
 	ldr	r4,	=1023
@@ -222,7 +283,7 @@ myTest:
 	mov	r2,	#100
 	ldr	r3,	=0xF00F
 	bl	DrawPixel16bpp
-
+*/
 	ldr	r6,	=0xFFFF
 inputLoop1$:	
 	bl	ReadSNES	

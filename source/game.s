@@ -12,63 +12,63 @@ InitGame:
 	ldr	r2,	=pawns_m
 	mov	px,	#16
 	mov	py,	#3
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#15
 	mov	py,	#20
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#4
 	mov	py,	#12
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#28
 	mov	py,	#13
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#6
 	mov	py,	#5
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#26
 	mov	py,	#7
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#4
 	mov	py,	#20
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#23
 	mov	py,	#19
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#7
 	mov	py,	#10
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	mov	px,	#20
 	mov	py,	#14
-	strb	px,	[objPtr]
-	strb	py,	[objPtr, #1]
-	add	objPtr,	#8
+	strb	px,	[objPtr, #OBJ_X]
+	strb	py,	[objPtr, #OBJ_Y]
+	add	objPtr,	#OBJ_SIZE
 
 	.unreq	objPtr
 	.unreq	px	
@@ -109,19 +109,19 @@ DrawScene:
 	ldr	r7,	[r7]
 	ldr	objPtr,	=pawns_m
 drawLoop:				// draw each object
-	ldrb	r1,	[objPtr]
+	ldrb	r1,	[objPtr, #OBJ_X]
 	lsl	r1,	#5
-	ldrb	r2,	[objPtr, #1]
+	ldrb	r2,	[objPtr, #OBJ_Y]
 	lsl	r2,	#5
-	ldrh	r3,	[objPtr, #6]
-	ldrb	r4,	[objPtr, #2]
-	ldrb	r5,	[objPtr, #3]
+	ldrh	r3,	[objPtr, #OBJ_CLR]
+	ldrb	r4,	[objPtr, #OBJ_W]
+	ldrb	r5,	[objPtr, #OBJ_H]
 	push	{r1-r5}			// store vars on stack
 	bl	DrawEmptyRectangle
 	pop	{r1-r5}
 
 	add	count,	#1
-	add	objPtr,	#OBJSIZE
+	add	objPtr,	#OBJ_SIZE
 	cmp	count,	numObj
 	bLT	drawLoop
 
@@ -139,7 +139,7 @@ drawLoop2:				// draw each object
 	pop	{r1-r5}
 
 	add	count,	#1
-	add	objPtr,	#OBJSIZE
+	add	objPtr,	#BUL_SIZE
 	cmp	count,	numObj
 	bLT	drawLoop2
 
@@ -180,56 +180,70 @@ OffsetPosition:
 	.unreq	dir
 	bx	lr
 	
-/* Return x, y, offset by the direction */
-// (x, y, dir): new x, new y      on stack
-.globl	OffsetPosition2
-OffsetPosition2:	
-	dir	.req	r4
-	px	.req	r5
-	py	.req	r6
-	
-	pop	{r4-r6}
-	tst	dir,	#1
-	subne	py,	#1
-	
-	tst	dir,	#2
-	addne	px,	#1
-	
-	tst	dir,	#4
-	addne	py,	#1
+/* Checks if obj_m is an active object */
+IsActive:
+	obj_m	.req	r0
+	result	.req	r3
 
-	tst	dir,	#8
-	subne	px,	#1
-
-	push {px,py}
-	.unreq	px
-	.unreq	py
-	.unreq	dir
+	mov	result,	#1
+	ldr	r1,	=bullets_m
+	cmp	r0,	r1
+	
+	bge	actBul
+	ldrb	r2,	[r0,	#OBJ_HP]
+	cmp	r2,	#0
+	movle	result,	#0
+	beq	actEnd
+actBul:
+	ldrb	r2,	[r0,	#BUL_FLG]
+	cmp	r2,	#0
+	moveq	result,	#0
+	beq	actEnd
+actEnd:
+	mov	r0,	result
+	.unreq	obj_m
+	.unreq	result
 	bx	lr
 
 /* Checks if obj1 occupies the same spot as obj2 */
 .globl	DetectHit	//(obj1_m, obj2_m)	pointers
-DetectHit:	
-	obj1_m	.req	r0
-	obj2_m	.req	r1
+DetectHit:
+	push	{r4,r5,lr}
+	obj1_m	.req	r4
+	obj2_m	.req	r5
 
-	ldrb	r2,	[obj1_m]
-	ldrb	r3,	[obj2_m]
+	mov	r4,	r0
+	mov	r5,	r1
+	
+	ldrb	r2,	[obj1_m, #OBJ_X]
+	ldrb	r3,	[obj2_m, #OBJ_X]
 	cmp	r2,	r3
 	movne	r0,	#0	// no hit
 	bne	hitdone
 	
-	ldrb	r2,	[obj1_m, #1]
-	ldrb	r3,	[obj2_m, #1]
+	ldrb	r2,	[obj1_m, #OBJ_Y]
+	ldrb	r3,	[obj2_m, #OBJ_Y]
 	cmp	r2,	r3
 	movne	r0,	#0	// no hit
 	bne	hitdone
+
+	mov	r0,	obj1_m
+	bl	IsActive
+	cmp	r0,	#0	// no hit
+	moveq	r0,	#0	// no hit
+	beq	hitdone
+
+	mov	r0,	obj2_m
+	bl	IsActive
+	cmp	r0,	#0	// no hit
+	moveq	r0,	#0	// no hit
+	beq	hitdone
 
 	mov	r0,	#1	// hit detected
 hitdone:
 	.unreq	obj1_m
 	.unreq	obj2_m
-	bx	lr
+	pop	{r4,r5,pc}
 
 .section .data
 
@@ -249,7 +263,9 @@ player_m:
 	.byte 	32	// w	
 	.byte 	32	// h
 	.byte	100	// hitpoints
-	.byte	5	// value 
+	.byte	0	// value 
+	.byte	0	// facing direction
+	.byte	0	// index
 	.hword	0xFFFF	// color
 .globl	pawns_m
 pawns_m:
@@ -260,6 +276,8 @@ pawns_m:
 	.byte 	16	// h
 	.byte	10	// hitpoints
 	.byte	5	// value 
+	.byte	0	// facing direction
+	.byte	0	// index
 	.hword	0xFFE0	// color
 	.endr
 .globl	knights_m
@@ -271,6 +289,8 @@ knights_m:
 	.byte 	24	// h
 	.byte	40	// hitpoints
 	.byte	10	// value 
+	.byte	0	// facing direction
+	.byte	0	// index
 	.hword	0xF800	// color
 	.endr
 .globl	queens_m
@@ -282,6 +302,8 @@ queens_m:
 	.byte 	32	// h
 	.byte	100	// hitpoints
 	.byte	100	// value 
+	.byte	0	// facing direction
+	.byte	0	// index
 	.hword	0x39C7	// color
 	.endr
 obstacles_m:		
@@ -292,11 +314,14 @@ obstacles_m:
 	.byte 	32	// h
 	.byte	100	// hitpoints
 	.byte	0	// value 
+	.byte	0	// facing direction
+	.byte	0	// index
 	.hword	0xFFFF	// color
 	.endr
+.align	4
 .globl	NumOfObjects
 NumOfObjects:
-	.int	(.-pawns_m) / OBJSIZE	// 8 bytes per object
+	.int	(.-pawns_m) / OBJ_SIZE	// 10 bytes per object
 .globl	bullets_m
 bullets_m:		
 	.rept	18	// 1 bullet allocated for each object
