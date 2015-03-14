@@ -114,14 +114,18 @@ mbLoop:
 	add	addr,	#OBJ_SIZE
 	b	mbLoop
 mbhit:	
+	ldrb	r0,	[addr, #OBJ_W]	
+	sub	r0,	#2
+	strb	r0,	[addr, #OBJ_W]	
+	ldrb	r0,	[addr, #OBJ_H]	
+	sub	r0,	#2
+	strb	r0,	[addr, #OBJ_H]	
 	ldrb	r0,	[addr, #OBJ_HP]	
 	subs	r0,	#10
 	strb	r0,	[addr, #OBJ_HP]	
 
 	mov	r0,	#0
-	strh	r0,	[obj_m, #BUL_CLR]	
 	strb	r0,	[obj_m, #BUL_FLG]	
-	strh	r0,	[addr, #OBJ_CLR]	
 	bgt	modone			// branch out if (hp > 0)
 		
 modone:

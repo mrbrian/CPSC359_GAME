@@ -18,7 +18,7 @@ main:
 
 	ldr	r1,	=FrameBufferPointer
 	str	r0,	[r1]
-
+fbpinit:
 	b       testGame
 
 	bl	InitSNES

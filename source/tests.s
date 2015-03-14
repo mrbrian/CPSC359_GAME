@@ -9,7 +9,14 @@ testStr:
 .globl	testGame
 
 testGame:
-
+alivetest$:
+	bl	InitGame
+	ldr	r0,	=player_m
+	mov	r1,	#0
+	str	r1,	[r0,	#OBJ_HP]
+	bl	IsPlayerAlive	
+	cmp	r0,	#0
+	bne	alivetest$
 blocktest2$:
 /*	bl	InitGame
 	ldr	r0,	=pawns_m
@@ -42,6 +49,7 @@ blocktest2$:
 	bne	blocktest2$
 */
 numtest$:
+	bl	InitGame
 	ldr	r0,	=pawns_m
 	ldrb	r1,	[r0, #OBJ_IDX]
 	cmp	r1,	#0	
@@ -51,6 +59,7 @@ numtest$:
 	cmp	r1, #47
 	bne	numtest$
 numtest2$:
+	bl	InitGame
 	ldr	r0,	=pawns_m
 	ldrh	r1,	[r0, #OBJ_CLR]
 	ldr	r2, 	=0xFFE0
@@ -69,8 +78,9 @@ numtest2$:
 	ldr	r0,	=bullets_m
 	ldrh	r0,	[r0, #BUL_CLR]
 	cmp	r0,	#0
-	bne	bullettest$*/
+	bne	bullettest$
 blocktest$:
+	bl	InitGame
 	ldr	r0,	=player_m
 	mov	r1,	#1
 	strb	r1,	[r0, #OBJ_X]
@@ -212,90 +222,9 @@ hittest$:		// bullet hit test
 	bl	MoveObject
 	ldr	r0,	=queens_m
 	mov	r1,	#8
-	bl	MoveObject
+	bl	MoveObject*/
 testGameLoop:
-	ldr	r0,	=pawns_m
-	ldr	r1,	=NumOfObjects
-	bl	DrawScene
-	bl	UpdateScene
-
-.globl	testMain
-testMain:
-	bl	InitSNES
-	mov	r4,	#100	
-	mov	r5,	#200
-
-gameLoop$:
-	ldr	r6,	=0xFFFF
-	bl	ReadSNES
-	ldr	r1,	=SNESpad	
-	ldr	r1,	[r1]	
-	cmp	r1,	r6	// if no buttons pressed
-	beq	gameLoop$
-
-drawLoop$:	
-	bl	ClearScreen
-	bl	UpdatePlayer
-	bl	UpdateScene
-	bl	DrawScene
-	bl	DrawPlayer
-
-myTest:
-	/*mov	r1,	#0
-	mov	r2,	#0
-	ldr	r3,	=0xFF0F
-	ldr	r4,	=1023
-	ldr	r5,	=767
-	push	{r1-r5}
-	bl	DrawEmptyRectangle
-	pop	{r1-r5}
-
-	mov	r1,	#100
-	mov	r2,	#100
-	ldr	r3,	=0xFF0F
-	ldr	r4,	=500
-	ldr	r5,	=17
-	push	{r1-r5}
-	bl	DrawEmptyRectangle
-	pop	{r1-r5}
-
-	ldr	r0,	=testStr
-	mov	r1,	#300
-	mov	r2,	#300
-	ldr	r3,	=0xFFFF
-	bl	DrawString
-
-	mov	r0,	#50
-	mov	r1,	#100
-	mov	r2,	#50
-	ldr	r3,	=0xF00F
-	bl	DrawHorizontalLine
-
-	ldr	r0,	=50
-	mov	r1,	#200
-	mov	r2,	#200
-	ldr	r3,	=0xF00F
-	bl	DrawVerticalLine
-
-	ldr	r0,	=FrameBufferPointer
-	ldr	r0,	[r0]
-	mov	r1,	#500
-	mov	r2,	#100
-	ldr	r3,	=0xF00F
-	bl	DrawPixel16bpp
-*/
-	ldr	r6,	=0xFFFF
-inputLoop1$:	
-	bl	ReadSNES	
-	ldr	r1,	=SNESpad
-	ldr	r1,	[r1]	
-	cmp	r1,	r6	// if no buttons pressed
-	bne	inputLoop1$
-	ldr	r0,	=0xFFFF
-	bl	Wait
-	b	gameLoop$
-haltLoop$:
-	b		haltLoop$
+	b	GameMain
 
 
 

@@ -1,14 +1,48 @@
+.include "constants.s"
 .section .text
+
+.globl	DrawFilledRectangle //(x,y,color,w,h) on stack
+DrawFilledRectangle:
+	push	{r4, lr}
+	size	.req	r0
+	px	.req	r1
+	py	.req	r2
+	color	.req	r3	
+	count	.req	r4
+	mov	count,	#0
+fillLoop:
+	ldr	size,	[sp, #24]	// height
+	cmp	count,	size
+	bge	filldone
+	ldr	size,	[sp, #20]	// width
+	ldr	px,	[sp, #8]	// x
+	ldr	py,	[sp, #12]	// y
+	add	py,	count
+	ldr	color,	[sp, #16]	// color	
+	bl	DrawHorizontalLine
+	add	count,	#1
+	b	fillLoop
+filldone:
+	.unreq	size
+	.unreq	px
+	.unreq	py
+	.unreq	color
+	.unreq	count
+	pop	{r4,pc}	
 
 .globl	DrawEmptyRectangle //(x,y,color,w,h) on stack
 DrawEmptyRectangle:
 	push	{lr}
+	
 	size	.req	r0
 	px	.req	r1
 	py	.req	r2
 	color	.req	r3	
 
-	ldr	r0,	[sp, #20]	// height
+	ldr	size,	[sp, #20]	// height
+	ldr	px,	[sp, #4]	// x
+	ldr	py,	[sp, #8]	// y
+	ldr	color,	[sp, #12]	// color
 	bl	DrawVerticalLine
 		
 	ldr	size,	[sp, #16]	// width
@@ -20,6 +54,7 @@ DrawEmptyRectangle:
 	ldr	size,	[sp, #16]	// height
 	ldr	px,	[sp, #4]	// x
 	add	px,	size		// x = initial x + width
+	sub	px,	#1
 	ldr	size,	[sp, #20]	// height
 	ldr	py,	[sp, #8]	// y
 	ldr	color,	[sp, #12]	// color
@@ -28,6 +63,7 @@ DrawEmptyRectangle:
 	ldr	size,	[sp, #20]	// height
 	ldr	py,	[sp, #8]	// y
 	add	py,	size		// y = initial y + height
+	sub	py,	#1
 	ldr	size,	[sp, #16]	// width
 	ldr	px,	[sp, #4]	// width
 	ldr	color,	[sp, #12]	// color
@@ -39,47 +75,6 @@ DrawEmptyRectangle:
 	.unreq	color
 
 	pop	{pc}	
-
-.globl	DrawEmptySquare //(size,x,y,color)
-DrawEmptySquare:
-	push	{r4-r7, lr}
-
-	size	.req	r4
-	px	.req	r5
-	py	.req	r6
-	color	.req	r7	
-
-	mov	size,	r0
-	mov	px,	r1
-	mov	py,	r2
-	mov	color,	r3
-
-	bl	DrawHorizontalLine
-
-	mov	r0,	size
-	mov	r1,	px
-	mov	r2,	py
-	mov	r3,	color
-	bl	DrawVerticalLine
-	
-	mov	r0,	size
-	add	r1,	px,	size
-	mov	r2,	py
-	mov	r3,	color
-	bl	DrawVerticalLine
-
-	mov	r0,	size
-	mov	r1,	px
-	add	r2,	py,	size
-	mov	r3,	color
-	bl	DrawHorizontalLine
-
-	.unreq	size
-	.unreq	px
-	.unreq	py
-	.unreq	color
-
-	pop	{r4-r7, pc}	
 
 .globl	DrawHorizontalLine //(length,x,y,color)
 DrawHorizontalLine:
@@ -149,11 +144,12 @@ vlineDone:
 
 .globl	ClearScreen
 ClearScreen:
-	push	{r4,r5,lr}
+	push	{r4-r6,lr}
 	x	.req	r4
 	y	.req	r5
 	offset	.req	r6
 	
+	ldr	r3,	=BG_COLOR
 	mov	y,	#0
 
 	ldr	r0,	=FrameBufferPointer
@@ -184,7 +180,7 @@ xLoop:
 	.unreq	x
 	.unreq	y
 
-	pop		{r4,r5,pc}
+	pop		{r4-r6,pc}
 
 
 .globl	DrawPixel16bpp

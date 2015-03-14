@@ -11,7 +11,8 @@ ValidObjectMove:	// (int x, int y) : bool
 	numObj	.req	r4
 	px	.req	r5
 	py	.req	r6
-	result	.req	r7
+	hp	.req	r7
+	result	.req	r8
 	
 	mov	result,	#0
 	cmp	r0,	#0
@@ -36,8 +37,13 @@ vmloop:			// loop through all objects
 	bne	vmloopinc
 	ldrb	py,	[addr, #OBJ_Y]
 	cmp	r1,	py
-	moveq	result,	#0	// if any object is the same position, then move is invalid
-	beq	vmdone
+	bne	vmloopinc
+
+	ldrb	hp,	[addr, #OBJ_HP]
+	cmp	hp,	#1
+
+	movge	result,	#0	// if any object is the same position, then move is invalid
+	bge	vmdone
 vmloopinc:
 	add	addr,	#OBJ_SIZE
 	add	count,	#1
@@ -49,6 +55,7 @@ vmdone:
 	.unreq	numObj
 	.unreq	px
 	.unreq	py
+	.unreq	hp
 	.unreq	result
 	pop	{r4-r7, pc}
 
@@ -74,7 +81,7 @@ FireBullet:		// (int ownerObj, int dir)
 	
 	ldrb	px,	[owner, #OBJ_X]	// x
 	ldrb	py,	[owner, #OBJ_Y]	// y 	
-	
+	/*
 	push	{r0-r2}
 	mov	r2,	dir
 	mov	r0,	px
@@ -92,7 +99,7 @@ FireBullet:		// (int ownerObj, int dir)
 	cmp	py,	#24	// is it in area bounds
 	bGE	fireskip
 	
-	pop	{r0-r2}
+	pop	{r0-r2}*/
 
 	strb	px,	[addr, #BUL_X]	
 	strb	py,	[addr, #BUL_Y]	
@@ -122,7 +129,7 @@ fireskip:
 	pop	{r4-r7,pc}
 	
 /* Moves an object along cardinal directions according to the LS 4 bits of dir */
-.globl	MoveObject	//(int obj_m, byte dir)
+.globl	MoveObject	//(int obj_m, byte dir), output: r0 = 1 if valid, 0 not valid
 MoveObject:
 	push	{r4-r7,lr}
 	obj_m	.req	r4

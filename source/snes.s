@@ -139,4 +139,4 @@ done:
 
 .globl	SNESpad
 SNESpad:
-	.int	0	
+	.int	0xFFFFFFFF	
