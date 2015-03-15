@@ -95,6 +95,83 @@ waitLoop:
 	bhi waitLoop
 	bx	lr
 
+/* Converts a int value to a string */
+.globl	IntToString
+IntToString:
+	push	{r4-r9}
+	num	.req	r4
+	origNum	.req	r5
+	mod	.req	r6
+	count	.req	r7
+	digit	.req	r8
+	modAddr	.req	r9
 
+	ldr	modAddr,	=modValues_m
+	mov	count,		#0
+	mov	num,		r1
+	mov	origNum,	r1
+	ldr	mod,		[modAddr]
+modOuterLoop:
+	mov	digit,		#0
+	cmp	mod,	#0
+	beq	mod_done
+modInnerLoop:
+	cmp	num,	mod	// do num-mod until num < mod
+	blt	modInnerDone	
+	sub	num,	mod
+	add	digit,		#1
+	b	modInnerLoop
+modInnerDone:
+	add	r2,	digit,	#48
+	strb	r2,	[r0]	// add character to output..
+	add	r0,	#1
+	mul	digit,		mod
+	sub	origNum,	num	
+	add	count,		#1
+	add	modAddr,	#4
+	ldr	mod,		[modAddr]
+	b	modOuterLoop
+mod_done:	
+	pop	{r4-r9}
+	bx	lr
 
+/* returns a sortof random number from 0 to r0 */
+.globl	Random
+Random:
+	push	{r4,r5}
+	rtemp	.req	r5
+
+	ldr	r4,	=random_m
+	ldr	r4,	[r4]
+	mul	rtemp,	r4,	r4
+
+	ldr	r4,	=random_m
+	and	r4,	#0xFF
+	str	r5,	[r4]
+rmod:
+	cmp	rtemp,	r0
+	blt	rmod_done
+	sub	rtemp, 	r0
+	b	rmod
+rmod_done:
+	mov	r0,	r5
+	pop	{r4,r5}
+	bx	lr
+
+.section .data	
+.globl	random_m
+random_m:
+	.int	RAND_SEED
+modValues_m:
+	.int	1000000000
+	.int	100000000
+	.int	10000000
+	.int	1000000
+	.int	100000
+	.int	10000
+	.int	1000
+	.int	100
+	.int	10
+	.int	1
+	.int	0
 

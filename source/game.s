@@ -14,6 +14,39 @@ InitGame:
 	px	.req	r9
 	py	.req	r10
 
+	ldr	r0,	=GameState	
+	mov	temp,	#G_NORMAL
+	str	temp,	[r0]
+
+	mov	num,	#PLYR_HP
+	ldr	temp,	=PlayerPoints	
+	str	num,	[temp]
+	mov	num,	#NUM_PA
+	add	num,	#NUM_KN
+	add	num,	#NUM_QU
+	add	num,	#1	// +1 for player bullet
+
+	ldr	objPtr,	=pBullet_m
+	mov	count,	#0
+bulletLoop:
+	cmp	count,	num	
+	bge	bulletDone
+
+	mov	temp,	#0
+	strb	temp,	[objPtr, #BUL_X]
+	strb	temp,	[objPtr, #BUL_Y]	
+	strb	temp,	[objPtr, #BUL_W]	
+	strb	temp,	[objPtr, #BUL_H]	
+	strb	temp,	[objPtr, #BUL_DIR]
+	strb	temp,	[objPtr, #BUL_FLG]
+	strh	temp,	[objPtr, #BUL_CLR]
+	add	objPtr,	#BUL_SIZE
+	add	count,	#1
+	b	bulletLoop
+bulletDone:
+	ldr	objPtr,	=random_m
+	mov	temp,	#RAND_SEED
+	str	temp,	[objPtr]
 	ldr	objPtr,	=player_m
 	mov	temp,	#32
 	strb	temp,	[objPtr, #OBJ_W]	
@@ -46,11 +79,12 @@ pawnloop:
 	strb	temp,	[objPtr, #OBJ_H]	
 	mov	temp,	#PA_HP
 	strb	temp,	[objPtr, #OBJ_HP]
-	mov	temp,	#5
+	mov	temp,	#PA_VAL
 	strb	temp,	[objPtr, #OBJ_VAL]
 	mov	temp,	#0
 	strb	temp,	[objPtr, #OBJ_DIR]
-	mov	temp,	#0
+	mov	temp,	count
+	add	temp,	#1
 	strb	temp,	[objPtr, #OBJ_IDX]
 	ldr	temp,	=0xFFE0
 	strh	temp,	[objPtr, #OBJ_CLR]
@@ -75,11 +109,12 @@ knightloop:
 	strb	temp,	[objPtr, #OBJ_H]	
 	mov	temp,	#KN_HP
 	strb	temp,	[objPtr, #OBJ_HP]
-	mov	temp,	#10
+	mov	temp,	#KN_VAL
 	strb	temp,	[objPtr, #OBJ_VAL]
 	mov	temp,	#0
 	strb	temp,	[objPtr, #OBJ_DIR]
-	mov	temp,	#0
+	mov	temp,	count
+	add	temp,	#11
 	strb	temp,	[objPtr, #OBJ_IDX]
 	ldr	temp,	=0xF800
 	strh	temp,	[objPtr, #OBJ_CLR]
@@ -104,11 +139,12 @@ queenloop:
 	strb	temp,	[objPtr, #OBJ_H]	
 	mov	temp,	#QU_HP
 	strb	temp,	[objPtr, #OBJ_HP]
-	mov	temp,	#100
+	mov	temp,	#QU_VAL
 	strb	temp,	[objPtr, #OBJ_VAL]
 	mov	temp,	#0
 	strb	temp,	[objPtr, #OBJ_DIR]
-	mov	temp,	#0
+	mov	temp,	count
+	add	temp,	#16
 	strb	temp,	[objPtr, #OBJ_IDX]
 	ldr	temp,	=0x39C7
 	strh	temp,	[objPtr, #OBJ_CLR]
@@ -170,8 +206,7 @@ mod_y:
 	sub	r0, 	#MAX_PY
 	b	mod_y
 mod_done:
-/*
-	mov	r0,	temp
+/*	mov	r0,	temp
 	mov	r1,	r7
 	bl	ValidObjectMove
 	cmp	r0,	#0
@@ -214,39 +249,47 @@ inputLoop:
 	ldr	r1,	[r1]	
 	cmp	r1,	r6	// if no buttons pressed
 	beq	inputLoop
-doupdate:	
-	bl	UpdatePlayer	// r0 = 1 if valid move performed
-	cmp	r0,	#0
-	beq	checkstart	// check if start pressed
-
+doUpdate:	
+	bl	UpdateMenu	// returns r0 = 0 if menu off
+	cmp	r0,	#1
+	beq	doDraw	
+doPlayer:
+	ldr	r0,	=GameState
+	ldr	r0,	[r0]
+	cmp	r0,	#G_NORMAL	// if game is not Normal state
+	beq	normalState
+	ldr	r0,	=SNESpad
+	ldr	r0,	[r0]
+	ldr	r1,	=0xFFFF
+	cmp	r0,	r1
+	beq	inputClearLoop		// none of the buttons pressed
+	bl	InitGame
+	b	doDraw
+normalState:
+	cmp	r7,	#0
+	bleq	UpdatePlayer	// r0 = 1 if valid move performed
+/*	
+	ldr	r0,	=eBullets_m
+	ldr	r1,	=player_m
+	mov	r2,	#0
+	mov	r3,	#17
+checkLoop:				// check if sitting on a bullet
+	cmp	r2,	r3
+	bge	checkDone
+	bl	BulletCollide
+	add	r2,	#1
+	add	r0,	#BUL_SIZE
+	b	checkLoop	
+checkDone:
+*/
 	ldr	r7,	=GameState
 	ldr	r7,	[r7]
-dodraw:
-	bl	ClearScreen
 	bl	UpdateScene	// r0 = 1 
+doDraw:
+	bl	ClearScreen
 	bl	DrawScene
 	bl	DrawPlayer
-	ldr	r0,	=MenuState
-	ldr	r0,	[r0]
-	cmp	r0,	#0
-	blne	DrawMenu
-	b	inputClearLoop
-checkstart:
-	ldr	r1,	=SNESpad	// detect start button 
-	ldr	r1,	[r1]
-	tst	r1,	#0b1000	
-	blne	inputClearLoop
-	ldr	r1,	=MenuState
-	ldr	r0,	[r1]
-	cmp	r0,	#0
-	bne	menuoff	
-	mov	r0,	#1
-	str	r0,	[r1]
-	b	dodraw	
-menuoff:
-	mov	r0,	#0
-	str	r0,	[r1]
-	b	dodraw	
+	bl	DrawMenu
 inputClearLoop:	
 	bl	ReadSNES	
 	ldr	r1,	=SNESpad
@@ -267,51 +310,29 @@ UpdateScene:
 	gState	.req	r4
 
 	bl	UpdateAI
-	//bl	UpdatePlayerBullet
-	bl	UpdateEnemyBullets	
+	bl	UpdateBullets	
 
 	ldr	r5,	=GameState
 	ldr	gState,	[r5]
-
-	cmp	gState,	#0	// if game is not Normal state
-	bne	dostate		// skip changing state
 
 	bl	IsPlayerAlive		// r0 = 1 if yes
 	cmp	r0,	#0
 	moveq	gState,	#G_LOSE
 	streq	gState,	[r5]
-	beq	dostate
+	beq	usDone
 
 	bl	AreEnemiesAlive		// r0 = 1 if yes
 	cmp	r0,	#0
 	moveq	gState,	#G_WIN
 	streq	gState,	[r5]
-
-dostate:
-	cmp	gState,	#G_NORMAL
-	beq	gDone
-
-	cmp	gState,	#G_WIN	
-	ldr	r0,	=winStr
-	moveq	r1,	#300
-	moveq	r2,	#400
-	moveq	r3,	#0xF800
-	bleq	DrawString
-
-	cmp	gState,	#G_LOSE
-	ldr	r0,	=loseStr
-	moveq	r1,	#300
-	moveq	r2,	#400
-	moveq	r3,	#0xF800
-	bleq	DrawString
-gDone:
+usDone:
 	pop	{pc}
 
 .globl	IsPlayerAlive	
 IsPlayerAlive:
 	mov	r0,	#1
-	ldr	r1,	=player_m
-	ldr	r1,	[r1, #OBJ_HP]
+	ldr	r1,	=PlayerPoints
+	ldr	r1,	[r1]
 	cmp	r1,	#0
 	movle	r0,	#0
 	bx	lr
@@ -399,10 +420,11 @@ drawObjectInc:
 	b	drawObject
 doneObj:
 	mov	count,	#0
-	ldr	objPtr,	=bullets_m
+	ldr	objPtr,	=pBullet_m
 	mov	numObj,	#NUM_PA
 	add	numObj,	#NUM_KN
 	add	numObj,	#NUM_QU
+	add	numObj,	#1
 drawBullet:				// draw each object
 	cmp	count,	numObj
 	bge	doneBul
@@ -427,6 +449,10 @@ drawBulletInc:
 	add	objPtr,	#BUL_SIZE
 	b	drawBullet
 doneBul:
+	ldr	r0,	=ptsStr
+	ldr	r1,	=PlayerPoints
+	ldr	r1,	[r1]
+	bl	IntToString
 	ldr	r0,	=scoreStr
 	mov	r1,	#0
 	mov	r2,	#0
@@ -448,6 +474,25 @@ doneBul:
 	ldr	r3,	=0x7E0
 	bl	DrawString
 
+	ldr	r0,	=GameState
+	ldr	r0,	[r0]
+	cmp	r0,	#G_NORMAL
+	beq	gDone
+
+	cmp	r0,	#G_WIN	
+	ldreq	r0,	=winStr
+	moveq	r1,	#300
+	moveq	r2,	#400
+	moveq	r3,	#0xF800
+	bleq	DrawString
+
+	cmp	r0,	#G_LOSE
+	ldreq	r0,	=loseStr
+	moveq	r1,	#300
+	moveq	r2,	#400
+	moveq	r3,	#0xF800
+	bleq	DrawString
+gDone:
 	.unreq	count
 	.unreq	numObj
 	.unreq	objPtr
@@ -464,28 +509,32 @@ OffsetPosition:
 	
 	tst	dir,	#1
 	subne	py,	#1
-	
+	bne	offsDone
+
 	tst	dir,	#2
 	addne	px,	#1
+	bne	offsDone
 	
 	tst	dir,	#4
 	addne	py,	#1
+	bne	offsDone
 
 	tst	dir,	#8
 	subne	px,	#1
-
+offsDone:
 	.unreq	px
 	.unreq	py
 	.unreq	dir
 	bx	lr
 	
 /* Checks if obj_m is an active object */
+.globl	IsActive
 IsActive:
 	obj_m	.req	r0
 	result	.req	r3
 
 	mov	result,	#1
-	ldr	r1,	=bullets_m
+	ldr	r1,	=pBullet_m
 	cmp	r0,	r1
 	
 	bge	actBul
@@ -547,7 +596,10 @@ hitdone:
 .section .data
 
 scoreStr:
-	.asciz	"SCORE:"
+	.ascii	"SCORE: "
+.globl	ptsStr
+ptsStr:
+	.asciz	"2000111333"	// where score string is held
 titleStr:
 	.asciz	"BOX KILLER"
 brianStr:
@@ -562,15 +614,16 @@ loseStr:
 .align 4
 GameState:
 	.int	0	// normal, won, lost, restart, quit
-Score:
-	.int	100
+.globl PlayerPoints
+PlayerPoints:
+	.int	PLYR_HP
 .globl	player_m
 player_m:
 	.byte	0	// x
 	.byte	0	// y
 	.byte 	32	// w	
 	.byte 	32	// h
-	.byte	100	// hitpoints
+	.byte	PLYR_HP	// hitpoints
 	.byte	0	// value 
 	.byte	0	// facing direction
 	.byte	0	// index
@@ -620,7 +673,7 @@ obstacles_m:
 	.byte	0	// y
 	.byte 	32	// w	
 	.byte 	32	// h
-	.byte	100	// hitpoints
+	.byte	OBS_HP	// hitpoints
 	.byte	0	// value 
 	.byte	0	// facing direction
 	.byte	0	// index
@@ -630,9 +683,18 @@ obstacles_m:
 .globl	NumOfObjects
 NumOfObjects:
 	.int	(.-pawns_m) / OBJ_SIZE	// 10 bytes per object
-.globl	bullets_m
-bullets_m:		
-	.rept	18	// 1 bullet allocated for each object
+.globl	pBullet_m
+pBullet_m:		
+	.byte	0	// x
+	.byte	0	// y
+	.byte 	32	// w	
+	.byte 	32	// h
+	.byte	0	// direction
+	.byte	0	// flags
+	.hword	0xFFFF	// color
+.globl	eBullets_m
+eBullets_m:		
+	.rept	17	// 1 bullet allocated for each object
 	.byte	0	// x
 	.byte	0	// y
 	.byte 	32	// w	

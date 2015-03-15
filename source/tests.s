@@ -9,11 +9,28 @@ testStr:
 .globl	testGame
 
 testGame:
+modtest$:
+	bl	InitGame
+	ldr	r0,	=ptsStr
+	mov	r1,	#312
+	bl	IntToString
+	ldr	r1,	=ptsStr
+	ldr	r0,	[r1, #7]
+	cmp	r0,	#51
+	bne	modtestdone$
+	ldr	r0,	[r1, #8]
+	cmp	r0,	#49
+	bne	modtestdone$
+	ldr	r0,	[r1, #9]
+	cmp	r0,	#50
+	bne	modtestdone$
+	b	modtest$
+modtestdone$:
 alivetest$:
 	bl	InitGame
-	ldr	r0,	=player_m
+	ldr	r0,	=PlayerPoints
 	mov	r1,	#0
-	str	r1,	[r0,	#OBJ_HP]
+	str	r1,	[r0]
 	bl	IsPlayerAlive	
 	cmp	r0,	#0
 	bne	alivetest$
@@ -47,7 +64,7 @@ blocktest2$:
 	ldrb	r1, [r0, #OBJ_Y]
 	cmp	r1, #6
 	bne	blocktest2$
-*/
+
 numtest$:
 	bl	InitGame
 	ldr	r0,	=pawns_m

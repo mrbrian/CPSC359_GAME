@@ -1,45 +1,56 @@
+.include "constants.s"
 .section .text
 
 .globl	UpdateAI
 UpdateAI:
-	push	{lr}
-/*
+	push	{r4-r8,lr}
+
 	count	.req	r4
 	num	.req	r5
 	obj_m	.req	r6
 	bul_m	.req	r7
 	temp	.req	r8
-	rand	.req	r9
 
 	mov	count,	#0
 	mov	num,	#NUM_PA
 	add	num,	#NUM_KN
 	add	num,	#NUM_QU
 	ldr	obj_m,	=pawns_m
-	ldr	bul_m,	=bullets_m
-ailoop:
+	ldr	bul_m,	=eBullets_m
+aiLoop:
 	cmp	count,	num
-	bge	aidone
+	bge	aiDone
 
-	mov	rand,	count
-	mul	rand,	rand
+	mov	r0,	obj_m
+	bl	IsActive
+	cmp	r0,	#0
+	beq	aiInc
 
 	ldrb	r0,	[bul_m, #BUL_FLG]	// shoot if bullet is non-active
-	tst	r0,	#1
-	beq	aishoot		
+	cmp	r0,	#0
+	beq	aiShoot		
 
-	ldrb	r0,	[r6, #OBJ_X]
-	ldrb	r1,	[r6, #OBJ_Y]
-	mov	r2,	dir			// make dir random
-	bl	OffsetPosition
-	mov	dir,	r0	
+	mov	r0,	obj_m
+	ldr	r1,	=player_m
+	ldrb	r1,	[r1, count]
+	and	r1,	#0b1111
 	bl	MoveObject
-aishoot:
-	add	count,	#1
+	b	aiInc
+aiShoot:
+	mov	r0,	obj_m
+	mov	r1,	#8
+	bl	FireBullet
+aiInc:
 	add	obj_m,	#OBJ_SIZE
 	add	bul_m,	#BUL_SIZE
-	b	ailoop
-aidone:*/
-	pop	{pc}
+	add	count,	#1
+	b	aiLoop
+aiDone:
+	.unreq	count	
+	.unreq	num	
+	.unreq	obj_m	
+	.unreq	bul_m	
+	.unreq	temp	
+	pop	{r4-r8,pc}
 
 .section .data

@@ -70,36 +70,16 @@ FireBullet:		// (int ownerObj, int dir)
 	px	.req	r4
 	py	.req	r5
 	index	.req	r6
-	ldr	offs,	=player_m	
-	ldrb	index,	[offs, #OBJ_IDX]
+	ldrb	index,	[owner, #OBJ_IDX]
 
-	ldr	addr,	=bullets_m
+	ldr	addr,	=pBullet_m
 	mov	r7, 	#BUL_SIZE	
 	mla	addr,	index,	r7,	addr
 	
 	.unreq	offs
 	
 	ldrb	px,	[owner, #OBJ_X]	// x
-	ldrb	py,	[owner, #OBJ_Y]	// y 	
-	/*
-	push	{r0-r2}
-	mov	r2,	dir
-	mov	r0,	px
-	mov	r1,	py
-	bl	OffsetPosition
-	mov	px,	r0
-	mov	py,	r1
-
-	cmp	px,	#0	// is it in area bounds
-	blt	fireskip
-	cmp	px,	#32	// is it in area bounds
-	bGE	fireskip
-	cmp	py,	#0	// is it in area bounds
-	blt	fireskip
-	cmp	py,	#24	// is it in area bounds
-	bGE	fireskip
-	
-	pop	{r0-r2}*/
+	ldrb	py,	[owner, #OBJ_Y]	// y 		
 
 	strb	px,	[addr, #BUL_X]	
 	strb	py,	[addr, #BUL_Y]	
@@ -113,7 +93,7 @@ FireBullet:		// (int ownerObj, int dir)
 	strb	r3,	[addr, #BUL_H]	
 
 	strb	dir,	[addr, #BUL_DIR]	
-	mov	r3,	#1	// set active flag on	0=inactive 1=playerbullet 2=enemybullet
+	mov	r3,	#1	// set active flag on	0=inactive 1=active
 	strb	r3,	[addr, #BUL_FLG]	
 	
 	ldrh	r3,	[owner, #OBJ_CLR]	// same color as owner 

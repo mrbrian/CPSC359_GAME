@@ -36,8 +36,8 @@ vmdone:
 	bx	lr
 
 /* Updates the positions of all bullets */
-.globl	UpdateEnemyBullets
-UpdateEnemyBullets:
+.globl	UpdateBullets
+UpdateBullets:
 	// update enemy bullets
 	push	{r4-r6,lr}
 	dir	.req	r1
@@ -45,8 +45,11 @@ UpdateEnemyBullets:
 	num	.req	r5
 	addr	.req	r6
 	
-	ldr	addr,	=bullets_m
-	mov	num,	#1
+	ldr	addr,	=pBullet_m
+	mov	num,	#NUM_PA
+	add	num,	#NUM_KN
+	add	num,	#NUM_QU
+	add	num,	#1
 	mov	count,	#0
 ubLoop:
 	cmp	count,	num	// there is 1 bullet per object
@@ -65,12 +68,9 @@ ubdone:
 	.unreq	num	
 	pop	{r4-r6,pc}
 
-/* Moves a bullet along cardinal directions according to the LS 4 bits of dir */
-//(int obj_m, byte dir)
-.globl	MoveBullet
-MoveBullet:
+PlayerTakeDamage:
 	push	{r4-r10,lr}
-	obj_m	.req	r4
+	obj_m	.req	r4	// the bullet
 	px	.req	r5
 	py	.req	r6
 	dir	.req	r7
@@ -78,6 +78,115 @@ MoveBullet:
 	num	.req	r9
 	addr	.req	r10
 
+	ldr	r1,	=PlayerPoints
+	ldr	r0,	[r1]
+	subs	r0,	#BULLET_DAMAGE
+	cmp	r0,	#1		// is player alive
+	bge	ptDone
+ptDead:					// player is dead
+	mov	r0,	#0
+	strb	r0,	[addr, #OBJ_HP]
+ptDone:
+	strb	r0,	[r1]
+	mov	r0,	#0
+	strb	r0,	[obj_m, #BUL_FLG]	
+	.unreq	obj_m	
+	.unreq	px	
+	.unreq	py	
+	.unreq	dir	
+	.unreq	count
+	.unreq	num	
+	.unreq	addr	
+	pop	{r4-r10,pc}
+
+EnemyTakeDamage:
+	push	{r4-r10,lr}
+	obj_m	.req	r4	// the bullet
+	px	.req	r5
+	py	.req	r6
+	dir	.req	r7
+	count	.req	r8
+	num	.req	r9
+	addr	.req	r10
+
+	ldrb	r0,	[addr, #OBJ_W]	
+	sub	r0,	#2
+	strb	r0,	[addr, #OBJ_W]	
+	ldrb	r0,	[addr, #OBJ_H]	
+	sub	r0,	#2
+	strb	r0,	[addr, #OBJ_H]	
+
+	ldrb	r0,	[addr, #OBJ_HP]
+	subs	r0,	#BULLET_DAMAGE
+	cmp	r0,	#1		// is object alive
+	bge	skipDeath
+death:					// give player pts?
+	movle	r0,	#0
+
+	ldr	r1,	=pBullet_m
+	cmp	obj_m,	r1		// is this the players bullet
+	bne	skipDeath
+	ldr	r1,	=PlayerPoints	
+	ldr	r1,	[r1]
+	ldrb	r2,	[addr, #OBJ_VAL]	// if yes, lets give them points
+	add	r2,	r1
+	ldr	r1,	=PlayerPoints
+	str	r2,	[r1]
+skipDeath:
+	strb	r0,	[addr, #OBJ_HP]	
+skipPoints:
+	mov	r0,	#0
+	strb	r0,	[obj_m, #BUL_FLG]	
+
+	.unreq	obj_m	
+	.unreq	px	
+	.unreq	py	
+	.unreq	dir	
+	.unreq	count
+	.unreq	num	
+	.unreq	addr	
+	pop	{r4-r10,pc}
+
+
+/* Moves a bullet along cardinal directions according to the LS 4 bits of dir */
+//(int obj_m, byte dir)
+.globl	BulletCollide
+BulletCollide:
+	push	{r4-r7,lr}
+	obj_m	.req	r4	// the bullet
+	px	.req	r5
+	py	.req	r6
+	addr	.req	r7
+	
+	mov	obj_m,	r0
+	ldr	addr,	=player_m
+	mov	r0,	obj_m
+	mov	r1,	addr
+	bl	DetectHit
+	cmp	r0,	#1
+	bne	bcdone
+	bleq	PlayerTakeDamage
+bcdone:
+	.unreq	obj_m	
+	.unreq	px	
+	.unreq	py
+	.unreq	addr
+	pop	{r4-r7,pc}
+
+
+/* Moves a bullet along cardinal directions according to the LS 4 bits of dir */
+//(int obj_m, byte dir)
+.globl	MoveBullet
+MoveBullet:
+	push	{r4-r10,lr}
+	obj_m	.req	r4	// the bullet
+	px	.req	r5
+	py	.req	r6
+	dir	.req	r7
+	count	.req	r8
+	num	.req	r9
+	addr	.req	r10
+	
 	mov	obj_m,	r0
 	mov	dir,	r1
 	ldrb	px,	[obj_m, #BUL_X]
@@ -91,7 +200,7 @@ MoveBullet:
 	mov	py,	r1
 	bl	ValidBulletMove
 	cmp	r0,	#1	// if ValidMove passes
-	bne	modone
+	bne	bulletOff
 
 	strb	px,	[obj_m, #BUL_X]
 	strb	py,	[obj_m, #BUL_Y]
@@ -100,7 +209,8 @@ MoveBullet:
 	mov	count,	#0
 	ldr	num,	=NumOfObjects
 	ldr	num,	[num]
-	ldr	addr,	=pawns_m
+	add	num,	#1
+	ldr	addr,	=player_m
 mbLoop:
 	cmp	count,	num	// loop through all objects, test for collision
 	bge	modone
@@ -108,32 +218,30 @@ mbLoop:
 	mov	r1,	addr
 	bl	DetectHit
 	cmp	r0,	#1
-	beq	mbhit
-
+	bne	dmgSkip
+	ldr	r0,	=player_m
+	cmp	addr,	r0
+	bne	else
+	bleq	PlayerTakeDamage
+	b	endif
+else:
+	blne	EnemyTakeDamage
+endif:
+dmgSkip:
 	add	count,	#1
 	add	addr,	#OBJ_SIZE
 	b	mbLoop
-mbhit:	
-	ldrb	r0,	[addr, #OBJ_W]	
-	sub	r0,	#2
-	strb	r0,	[addr, #OBJ_W]	
-	ldrb	r0,	[addr, #OBJ_H]	
-	sub	r0,	#2
-	strb	r0,	[addr, #OBJ_H]	
-	ldrb	r0,	[addr, #OBJ_HP]	
-	subs	r0,	#10
-	strb	r0,	[addr, #OBJ_HP]	
-
+bulletOff:
 	mov	r0,	#0
-	strb	r0,	[obj_m, #BUL_FLG]	
-	bgt	modone			// branch out if (hp > 0)
-		
+	strb	r0,	[obj_m, #BUL_FLG]
 modone:
 	.unreq	obj_m	
-	.unreq	dir	
 	.unreq	px	
 	.unreq	py
+	.unreq	dir	
+	.unreq	count
+	.unreq	num
+	.unreq	addr
 	pop	{r4-r10,pc}
-
 
 .section .data
