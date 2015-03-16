@@ -1,3 +1,9 @@
+/*	framebuffer.s
+ *
+ *	Author:	Taken from Tutorial Example 07 - framebuffer.s
+ *
+*/
+
 .section .text
 
 .globl InitFrameBuffer

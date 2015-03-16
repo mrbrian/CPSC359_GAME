@@ -1,82 +1,123 @@
 .include "constants.s"
 .section .text
 
-.globl	DrawFilledRectangle //(x,y,color,w,h) on stack
+.equ	RECT_X,		-20
+.equ	RECT_Y,		-16
+.equ	RECT_CLR,	-12
+.equ	RECT_W,		-8
+.equ	RECT_H,		-4
+
+.globl	DrawFilledRectangle 
+/* Draws a filled rectangle
+ *	r0 = memory pointer to variables on the stack
+ *	[r0, #-4] = x coord
+ *	[r0, #-8] = y coord
+ *	[r0, #-12] = color
+ *	[r0, #-16] = width
+ *	[r0, #-20] = height
+ * Returns:
+ * 	r0 = original r0 value
+ */
 DrawFilledRectangle:
-	push	{r4, lr}
+	push	{r4,r5, lr}
 	size	.req	r0
 	px	.req	r1
 	py	.req	r2
 	color	.req	r3	
 	count	.req	r4
+	memPtr	.req	r5
+	
+	mov	memPtr,	r0
 	mov	count,	#0
 fillLoop:
-	ldr	size,	[sp, #24]	// height
+	ldr	size,	[memPtr, #RECT_H]	// height
 	cmp	count,	size
 	bge	filldone
-	ldr	size,	[sp, #20]	// width
-	ldr	px,	[sp, #8]	// x
-	ldr	py,	[sp, #12]	// y
+	ldr	size,	[memPtr, #RECT_W]	// width
+	ldr	px,	[memPtr, #RECT_X]	// x
+	ldr	py,	[memPtr, #RECT_Y]	// y
 	add	py,	count
-	ldr	color,	[sp, #16]	// color	
+	ldr	color,	[memPtr, #RECT_CLR]	// color	
 	bl	DrawHorizontalLine
 	add	count,	#1
 	b	fillLoop
 filldone:
+	mov	r0,	memPtr
 	.unreq	size
 	.unreq	px
 	.unreq	py
 	.unreq	color
 	.unreq	count
-	pop	{r4,pc}	
+	.unreq	memPtr
+	pop	{r4,r5,pc}	
 
-.globl	DrawEmptyRectangle //(x,y,color,w,h) on stack
+.globl	DrawEmptyRectangle 
+/* Draws an empty rectangle
+ *	r0 = memory pointer to variables on the stack
+ *	[r0, #-4] = x coord
+ *	[r0, #-8] = y coord
+ *	[r0, #-12] = color
+ *	[r0, #-16] = width
+ *	[r0, #-20] = height
+ * Returns:
+ * 	r0 = original r0 value
+ */
 DrawEmptyRectangle:
-	push	{lr}
+	push	{r4,lr}
 	
 	size	.req	r0
 	px	.req	r1
 	py	.req	r2
 	color	.req	r3	
+	memPtr	.req	r4
 
-	ldr	size,	[sp, #20]	// height
-	ldr	px,	[sp, #4]	// x
-	ldr	py,	[sp, #8]	// y
-	ldr	color,	[sp, #12]	// color
+	mov	memPtr,	r0
+	ldr	size,	[memPtr, #RECT_H]	// height
+	ldr	px,	[memPtr, #RECT_X]	// x
+	ldr	py,	[memPtr, #RECT_Y]	// y
+	ldr	color,	[memPtr, #RECT_CLR]	// color
 	bl	DrawVerticalLine
 		
-	ldr	size,	[sp, #16]	// width
-	ldr	px,	[sp, #4]	// x
-	ldr	py,	[sp, #8]	// y
-	ldr	color,	[sp, #12]	// color
+	ldr	size,	[memPtr, #RECT_W]	// width
+	ldr	px,	[memPtr, #RECT_X]	// x
+	ldr	py,	[memPtr, #RECT_Y]	// y
+	ldr	color,	[memPtr, #RECT_CLR]	// color
 	bl	DrawHorizontalLine
 
-	ldr	size,	[sp, #16]	// height
-	ldr	px,	[sp, #4]	// x
+	ldr	size,	[memPtr, #RECT_W]	// width
+	ldr	px,	[memPtr, #RECT_X]	// x
 	add	px,	size		// x = initial x + width
 	sub	px,	#1
-	ldr	size,	[sp, #20]	// height
-	ldr	py,	[sp, #8]	// y
-	ldr	color,	[sp, #12]	// color
+	ldr	size,	[memPtr, #RECT_H]	// height
+	ldr	py,	[memPtr, #RECT_Y]	// y
+	ldr	color,	[memPtr, #RECT_CLR]	// color
 	bl	DrawVerticalLine
 
-	ldr	size,	[sp, #20]	// height
-	ldr	py,	[sp, #8]	// y
+	ldr	size,	[memPtr, #RECT_H]	// height
+	ldr	py,	[memPtr, #RECT_Y]	// y
 	add	py,	size		// y = initial y + height
 	sub	py,	#1
-	ldr	size,	[sp, #16]	// width
-	ldr	px,	[sp, #4]	// width
-	ldr	color,	[sp, #12]	// color
+	ldr	size,	[memPtr, #RECT_W]	// width
+	ldr	px,	[memPtr, #RECT_X]	// x
+	ldr	color,	[memPtr, #RECT_CLR]	// color
 	bl	DrawHorizontalLine
 
+	mov	r0,	memPtr
 	.unreq	size
 	.unreq	px
 	.unreq	py
 	.unreq	color
+	.unreq	memPtr
 
-	pop	{pc}	
+	pop	{r4,pc}	
 
-.globl	DrawHorizontalLine //(length,x,y,color)
+.globl	DrawHorizontalLine 
+/* Draws a rightwards horizontal line from x,y of specified length
+ *	r0 - line length
+ *	r1 - starting x coord
+ *	r2 - starting y coord
+ *	r3 - color half word
+ */
 DrawHorizontalLine:
 	push	{r4-r7, lr}
 	count	.req	r4
@@ -108,7 +149,13 @@ hlineDone:
 
 	pop	{r4-r7, pc}
 	
-.globl	DrawVerticalLine //(length,x,y,color)
+.globl	DrawVerticalLine 
+/* Draws a downward vertical line from x,y of specified length
+ *	r0 - line length
+ *	r1 - starting x coord
+ *	r2 - starting y coord
+ *	r3 - color half word
+ */
 DrawVerticalLine:
 	push	{r4-r7, lr}
 	count	.req	r4
@@ -144,6 +191,8 @@ vlineDone:
 
 .globl	ClearScreen
 ClearScreen:
+/* Fills the entire screen with BG_COLOR (defined in constants.s)
+ */
 	push	{r4-r6,lr}
 	x	.req	r4
 	y	.req	r5
@@ -156,32 +205,31 @@ ClearScreen:
 	ldr	r0,	[r0]	
 yLoop:
 	//for(int y = 0; y < 768; y++)
+	cmp	y,	#SCR_HEIGHT
+	bge	yLoopDone
 	mov	x,	#0
 xLoop:
-	//for(int x = 0; x < 1024; x++)
-	
+	//for(int x = 0; x < 1024; x++)	
+	cmp	x,	#SCR_WIDTH
+	bge	xLoopDone
 	// offset = (y * 1024) + x = x + (y << 10)
 	add		offset,	x, y, lsl #10
 	// offset *= 2 (for 16 bits per pixel = 2 bytes per pixel)
 	lsl		offset, #1
 
-	// store the colour (half word) at framebuffer pointer + offset
+	// store the colour at framebuffer pointer + offset
 	str	r3,		[r0, offset]
 
 	add	x,	#2
-	cmp	x,	#1024
-	bLT	xLoop
-
-	add	y,	#1
-	cmp	y,	#768
-	bLT	yLoop
-
+	b	xLoop
+xLoopDone:
+	add	y,	#1	
+	b	yLoop
+yLoopDone:
 	.unreq	offset
 	.unreq	x
 	.unreq	y
-
 	pop		{r4-r6,pc}
-
 
 .globl	DrawPixel16bpp
 /* Draw Pixel to a 1024x768x16bpp frame buffer
@@ -190,6 +238,8 @@ xLoop:
  *	r1 - pixel X coord
  *	r2 - pixel Y coord
  *	r3 - colour (use low half-word)
+
+Author: Taken from Tutorial 07 Example - main.s 
  */
 DrawPixel16bpp:
 	push	{r4}

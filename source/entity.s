@@ -2,8 +2,13 @@
 
 .section .text
 
-/* Checks if a position has an obstacle or object */
 .globl	ValidObjectMove
+/* Checks if a position has an obstacle or object 
+ *	r0 - X coord
+ *	r1 - Y coord
+ * Returns:
+ *	r0 - 1 if valid move, 0 if invalid move
+ */
 ValidObjectMove:	// (int x, int y) : bool
 	push	{r4-r7, lr}
 	addr	.req	r2
@@ -14,7 +19,7 @@ ValidObjectMove:	// (int x, int y) : bool
 	hp	.req	r7
 	result	.req	r8
 	
-	mov	result,	#0
+	mov	result,	#0		// check if x,y are within screen borders
 	cmp	r0,	#0
 	blt	vmdone
 	cmp	r0,	#MAX_PX
@@ -24,32 +29,32 @@ ValidObjectMove:	// (int x, int y) : bool
 	cmp	r1,	#MAX_PY
 	bgt	vmdone
 	
-	mov	result,	#1
+	mov	result,	#1		// by default return 1
 	ldr	numObj,	=NumOfObjects
 	ldr	numObj,	[numObj]
-	ldr	addr,	=pawns_m
+	ldr	addr,	=pawns_m	// starting with the first object
 	mov	count,	#0
-vmloop:			// loop through all objects
-	cmp	count,	numObj
+vmloop:			
+	cmp	count,	numObj	// loop through all objects
 	bge	vmdone
 	ldrb	px,	[addr, #OBJ_X]
-	cmp	r0,	px
-	bne	vmloopinc
+	cmp	r0,	px			// if object x = inputX..
+	bne	vmloopinc		
 	ldrb	py,	[addr, #OBJ_Y]
-	cmp	r1,	py
+	cmp	r1,	py		// and if object y = inputY..
 	bne	vmloopinc
 
 	ldrb	hp,	[addr, #OBJ_HP]
-	cmp	hp,	#1
+	cmp	hp,	#1		// and if object is alive..
 
-	movge	result,	#0	// if any object is the same position, then move is invalid
+	movge	result,	#0	// then the move is invalid, return 0
 	bge	vmdone
 vmloopinc:
-	add	addr,	#OBJ_SIZE
-	add	count,	#1
+	add	addr,	#OBJ_SIZE	// get address of next object
+	add	count,	#1	// increment counter
 	b	vmloop
 vmdone:
-	mov	r0,	result
+	mov	r0,	result	// return result in r0
 	.unreq	addr
 	.unreq	count
 	.unreq	numObj
@@ -59,8 +64,11 @@ vmdone:
 	.unreq	result
 	pop	{r4-r7, pc}
 
-/* Intialize a bullet */
 .globl	FireBullet
+/* Intialize a bullet 
+ *	r0 - address of bullet owner object
+ *	r1 - direction of bullet (use 4 LSB, 0001 = Up, 0010 = Right, 0100 = Down, 0001 = Left)
+ */
 FireBullet:		// (int ownerObj, int dir)	
 	push	{r4-r7,lr}
 	owner	.req	r0
@@ -108,8 +116,13 @@ fireskip:
 	
 	pop	{r4-r7,pc}
 	
-/* Moves an object along cardinal directions according to the LS 4 bits of dir */
-.globl	MoveObject	//(int obj_m, byte dir), output: r0 = 1 if valid, 0 not valid
+.globl	MoveObject	
+/* Moves an object along cardinal directions according to the LS 4 bits of dir 
+ *	r0 - address of object
+ *	r1 - direction of bullet (use 4 LSB, 0001 = Up, 0010 = Right, 0100 = Down, 0001 = Left)
+ * Returns:
+ *	r0 - 1 if valid move, 0 if invalid move
+ */
 MoveObject:
 	push	{r4-r7,lr}
 	obj_m	.req	r4

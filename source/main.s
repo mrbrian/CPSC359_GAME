@@ -17,25 +17,10 @@ main:
 	beq		haltLoop$
 
 	ldr	r1,	=FrameBufferPointer
-	str	r0,	[r1]
-fbpinit:
-	b       testGame
+	str	r0,	[r1]		// save FrameBufferPointer for later
+	bl      Tests		// run game tests
+	bl      GameMain	// branch to the Game 
 
-	bl	InitSNES
-	mov	r4,	#100	
-	mov	r5,	#200
-	ldr	r6,	=0xFFFF
-gameLoop$:
-	bl	ReadSNES
-	//bl	ClearScreen
-drawLoop$:
-	
-	bl	UpdatePlayer
-
-	ldr	r0,	=0x1000
-	bl	Wait
-
-	b	gameLoop$
 haltLoop$:
 	b		haltLoop$
 

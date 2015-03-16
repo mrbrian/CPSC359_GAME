@@ -1,3 +1,9 @@
+/*
+ * snes.s
+ * Author: All taken from Tutorial Example 10 - tut10-support.s
+ *	except for ReadSNES function
+*/
+
 .include "constants.s"
 .section .text
 
@@ -77,53 +83,58 @@ SetLEDLevel:
 	bx		lr
 
 .globl	ReadSNES
+/* Read data from SNES and return it/save to memory
+ *	
+ * Returns:
+ *	r0 - SNES button data
+ */
 ReadSNES:
 	push	{r4, r5, lr}
 
 	buttons	.req	r4
-	mov	buttons,	#0	// r4 = buttons
+	mov	buttons,	#0	// intialize buttons to zero
 
 	mov	r0,	#CLOCK	
 	mov	r1,	#1
-	bl	WriteGPIO	
+	bl	WriteGPIO	// write 1 to Clock 
 
 	mov	r0,	#LATCH	
 	mov	r1,	#1
-	bl	WriteGPIO	
+	bl	WriteGPIO	// write 1 to Latch 
 
-	mov	r0,	#12
+	mov	r0,	#12	// wait 12 micros
 	bl	Wait
 
 	mov	r0,	#LATCH	
 	mov	r1,	#0
-	bl	WriteGPIO	
+	bl	WriteGPIO	// write 0 to Latch 
 
 	mov	r5,	#0	// i=0
 pulseLoop:
 	
-	mov	r0,	#6	// wait 6micros
+	mov	r0,	#6	// wait 6 micros
 	bl	Wait
 
 	mov	r0,	#CLOCK	
 	mov	r1,	#0
-	bl	WriteGPIO	
+	bl	WriteGPIO	// write 0 to clock
 
 	mov	r0,	#6
-	bl	Wait
+	bl	Wait	// wait 6 micros
 		
 	mov	r0,	#DATA	
-	bl	ReadGPIO
+	bl	ReadGPIO	// read bit from data
 	
 	lsl	r0,	r5
-	orr	buttons,	r0
+	orr	buttons,	r0	// store it into buttons
 	
 	mov	r0,	#CLOCK	
 	mov	r1,	#1
-	bl	WriteGPIO	
+	bl	WriteGPIO	// write 1 to clock
 
 	add	r5,	#1	// i++
 
-	cmp	r5,	#16	// if i < 16
+	cmp	r5,	#16	// if i < 16, loop again
 	bLT	pulseLoop
 
 done:
@@ -139,4 +150,4 @@ done:
 
 .globl	SNESpad
 SNESpad:
-	.int	0xFFFFFFFF	
+	.int	0xFFFFFFFF	// default all buttons off

@@ -6,9 +6,9 @@ testStr:
 .asciz	"TEST"
 .align 	4
 
-.globl	testGame
+.globl	Tests
 
-testGame:
+Tests:
 modtest$:
 	bl	InitGame
 	ldr	r0,	=ptsStr

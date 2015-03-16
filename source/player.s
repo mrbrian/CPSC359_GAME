@@ -2,6 +2,10 @@
 .section .text
 
 .globl	UpdatePlayer
+/*	Reads the SNES pad input, and performs any movement/firing actions
+ * Returns:
+ * 	r0 = 1 if user performed a valid action, else 0 
+*/
 UpdatePlayer:
 	push	{r4,lr}
 	result	.req	r4
@@ -54,25 +58,6 @@ done:
 	mov	r0,	result
 	.unreq	result
 	pop	{r4,pc}
-
-.globl	DrawPlayer
-DrawPlayer:
-	push	{r4,r5,lr}	
-
-	mov	r0,	#TILESIZE
-	ldr	r3,	=player_m
-	ldrb	r1,	[r3, #OBJ_X]
-	lsl	r1,	#5
-	ldrb	r2,	[r3, #OBJ_Y]
-	lsl	r2,	#5
-	ldrb	r4,	[r3, #OBJ_W]
-	ldrb	r5,	[r3, #OBJ_H]
-	ldrh	r3,	[r3, #OBJ_CLR]
-	push	{r1-r5}
-	bl	DrawFilledRectangle
-	pop	{r1-r5}
-
-	pop	{r4,r5,pc}	
 
 .section .data
 
