@@ -190,9 +190,15 @@ vlineDone:
 	
 
 .globl	ClearScreen
-ClearScreen:
 /* Fills the entire screen with BG_COLOR (defined in constants.s)
  */
+ClearScreen:
+/*
+	push	{lr}
+	mov	r0,	#0
+	bl	DrawScene
+	pop	{lr}
+*/
 	push	{r4-r6,lr}
 	x	.req	r4
 	y	.req	r5

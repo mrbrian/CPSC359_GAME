@@ -10,7 +10,7 @@
  *	r0 - 1 if valid move, 0 if invalid move
  */
 ValidObjectMove:	// (int x, int y) : bool
-	push	{r4-r7, lr}
+	push	{r4-r8, lr}
 	addr	.req	r2
 	count	.req	r3
 	numObj	.req	r4
@@ -62,7 +62,7 @@ vmdone:
 	.unreq	py
 	.unreq	hp
 	.unreq	result
-	pop	{r4-r7, pc}
+	pop	{r4-r8, pc}
 
 .globl	FireBullet
 /* Intialize a bullet 
@@ -144,9 +144,18 @@ MoveObject:
 	bl	ValidObjectMove
 	cmp	r0,	#1	// if ValidMove passes
 	bne	modone
+
+	mov	r0,	#0
+	mov	r1,	obj_m
+	bl	DrawObject
+
 	strb	px,	[obj_m, #OBJ_X]
 	strb	py,	[obj_m, #OBJ_Y]
 	strb	dir,	[obj_m, #OBJ_DIR]
+
+	mov	r0,	#1
+	mov	r1,	obj_m
+	bl	DrawObject
 modone:
 	.unreq	obj_m	
 	.unreq	dir	

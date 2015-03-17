@@ -202,9 +202,17 @@ MoveBullet:
 	cmp	r0,	#1	// if ValidMove passes
 	bne	bulletOff
 
+	mov	r0,	#0
+	mov	r1,	obj_m
+	bl	DrawBullet
+
 	strb	px,	[obj_m, #BUL_X]
 	strb	py,	[obj_m, #BUL_Y]
 	strb	dir,	[obj_m, #BUL_DIR]
+
+	mov	r0,	#1
+	mov	r1,	obj_m
+	bl	DrawBullet
 
 	mov	count,	#0
 	ldr	num,	=NumOfObjects
@@ -219,6 +227,14 @@ mbLoop:
 	bl	DetectHit
 	cmp	r0,	#1
 	bne	dmgSkip
+hithit:
+	mov	r0,	#0
+	mov	r1,	obj_m
+	bl	DrawObject
+	mov	r0,	#0
+	mov	r1,	addr
+	bl	DrawObject
+
 	ldr	r0,	=player_m
 	cmp	addr,	r0
 	bne	else
@@ -227,11 +243,20 @@ mbLoop:
 else:
 	blne	EnemyTakeDamage
 endif:
+	mov	r0,	#1
+	mov	r1,	obj_m
+	bl	DrawObject
+	mov	r0,	#1
+	mov	r1,	addr
+	bl	DrawObject
 dmgSkip:
 	add	count,	#1
 	add	addr,	#OBJ_SIZE
 	b	mbLoop
 bulletOff:
+	mov	r0,	#0
+	mov	r1,	obj_m
+	bl	DrawObject
 	mov	r0,	#0
 	strb	r0,	[obj_m, #BUL_FLG]
 modone:

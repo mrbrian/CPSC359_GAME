@@ -202,14 +202,9 @@ mod_y:
 	sub	r0, 	#MAX_PY
 	b	mod_y
 mod_done:
-/*	mov	r0,	temp
-	mov	r1,	r7
-	bl	ValidObjectMove
-	cmp	r0,	#0
-	bne	skip
-fart:
-	mov	r0,	#0
-skip:*/
+	cmp	count,	#27
+	addeq	temp,	#1
+
 	strb	temp,	[objPtr, #OBJ_X]	
 	mov	temp,	r0
 	strb	temp,	[objPtr, #OBJ_Y]	

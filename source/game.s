@@ -5,7 +5,7 @@
 /*	Controls the input and game loops
 */
 GameMain:
-	push	{r4,r5,r6,lr}
+	push	{r4-r7,lr}
 	bl	InitSNES
 	bl	InitGame
 
@@ -47,27 +47,34 @@ normalState:
 	ldr	r7,	[r7]
 	bl	UpdateScene	// r0 = 1 
 doDraw:
-	bl	ClearScreen
-	bl	DrawScene
+	//bl	ClearScreen
+	//mov	r0,	#1
+	//bl	DrawScene
+	bl	DrawUI
 	bl	DrawMenu
 inputClearLoop:	
-/*	bl	ReadSNES	
+	ldr	r1,	=MenuState
+	ldr	r1,	[r1]
+	cmp	r1,	#0
+	beq	loopInit
+
+	bl	ReadSNES	
 	ldr	r1,	=SNESpad
 	ldr	r1,	[r1]	
 	cmp	r1,	r6	// if no buttons pressed
-	bne	inputClearLoop
+	bne	loopInit
 	ldr	r0,	=0xFFFF
-	bl	Wait*/
-	b	loopInit
+	bl	Wait
+	b	inputClearLoop
 haltLoop$:
 	b		haltLoop$
-	pop	{r4,r5,r6,pc}
+	pop	{r4-r7,pc}
 
 
 .globl	UpdateScene
 /* Updates the positions of all game objects */
 UpdateScene:
-	push	{lr}
+	push	{r4-r5,lr}
 
 	gState	.req	r4
 
@@ -88,7 +95,7 @@ UpdateScene:
 	moveq	gState,	#G_WIN
 	streq	gState,	[r5]
 usDone:
-	pop	{pc}
+	pop	{r4-r5,pc}
 
 .globl	IsPlayerAlive	
 IsPlayerAlive:
@@ -138,11 +145,94 @@ edone:
 	pop	{r4-r8}
 	bx	lr
 
+.globl	DrawObject
+/*
+ * r0 = doDraw
+ * r1 = objPtr
+*/
+DrawObject:
+	push	{r4-r6,lr}
+
+	bgClr	.req	r4
+	doDraw	.req	r5
+	objPtr	.req	r6
+
+	ldr	bgClr,	=BG_COLOR
+	mov	doDraw,	r0
+	mov	objPtr,	r1
+	mov	r0,	objPtr
+	bl	IsActive
+	cmp	r0,	#0
+	beq	dobDone
+
+	ldrb	r1,	[objPtr, #OBJ_X]
+	lsl	r1,	#5
+	ldrb	r2,	[objPtr, #OBJ_Y]
+	lsl	r2,	#5
+	ldrh	r3,	[objPtr, #OBJ_CLR]
+	cmp	doDraw,	#0
+	moveq	r3,	bgClr
+	ldrb	r4,	[objPtr, #OBJ_W]
+	ldrb	r5,	[objPtr, #OBJ_H]
+	mov	r0,	sp
+	push	{r1-r5}			// store vars on stack
+	bl	DrawFilledRectangle
+	mov	sp,	r0
+dobDone:
+	.unreq	doDraw
+	.unreq	objPtr
+	.unreq	bgClr
+	pop	{r4-r6,pc}
+	
+.globl	DrawBullet
+/*
+ * r0 = doDraw
+ * r1 = objPtr
+*/
+DrawBullet:
+	push	{r4-r6,lr}
+
+	bgClr	.req	r4
+	doDraw	.req	r5
+	objPtr	.req	r6
+
+	ldr	bgClr,	=BG_COLOR
+	mov	doDraw,	r0
+	mov	objPtr,	r1
+	mov	r0,	objPtr
+	bl	IsActive
+	cmp	r0,	#0
+	beq	dDone
+
+	ldrb	r1,	[objPtr, #BUL_X]
+	lsl	r1,	#5
+	ldrb	r2,	[objPtr, #BUL_Y]
+	lsl	r2,	#5
+	ldrh	r3,	[objPtr, #BUL_CLR]
+	cmp	doDraw,	#0
+	moveq	r3,	bgClr
+	ldrb	r4,	[objPtr, #BUL_W]
+	ldrb	r5,	[objPtr, #BUL_H]
+	mov	r0,	sp
+	push	{r1-r5}			// store vars on stack
+	bl	DrawFilledRectangle
+	mov	sp,	r0
+dDone:
+	.unreq	doDraw
+	.unreq	objPtr
+	.unreq	bgClr
+	pop	{r4-r6,pc}
+	
 .globl	DrawScene
 /* Draws all objects in game world
 */
 DrawScene:
-	push	{r4-r8,	lr}
+	push	{r4-r9,	lr}
+
+	ldr	r3,	=BG_COLOR
+	bgClr	.req	r3
+	doDraw	.req	r9
+	mov	r9,	r0
 
 	mov	r6,	#0
 	mov	r1,	#0
@@ -178,6 +268,8 @@ drawObject:				// draw each object
 	ldrb	r2,	[objPtr, #OBJ_Y]
 	lsl	r2,	#5
 	ldrh	r3,	[objPtr, #OBJ_CLR]
+	cmp	doDraw,	#0
+	moveq	r3,	bgClr
 	ldrb	r4,	[objPtr, #OBJ_W]
 	ldrb	r5,	[objPtr, #OBJ_H]
 	mov	r0,	sp
@@ -209,6 +301,8 @@ drawBullet:				// draw each object
 	ldrb	r2,	[objPtr, #BUL_Y]
 	lsl	r2,	#5
 	ldrh	r3,	[objPtr, #BUL_CLR]
+	cmp	doDraw,	#0
+	moveq	r3,	bgClr
 	ldrb	r4,	[objPtr, #BUL_W]
 	ldrb	r5,	[objPtr, #BUL_H]
 	mov	r0,	sp
@@ -220,6 +314,28 @@ drawBulletInc:
 	add	objPtr,	#BUL_SIZE
 	b	drawBullet
 doneBul:
+	.unreq	bgClr
+	.unreq	doDraw
+	.unreq	count
+	.unreq	numObj
+	.unreq	objPtr
+	pop	{r4-r9, pc}
+
+/* Draws player score, game title, names
+*/
+DrawUI:
+	push	{r4-r5,lr}
+
+	mov	r1,	#0
+	mov	r2,	#0
+	ldr	r3,	=0xFFFF
+	mov	r4,	#SCR_WIDTH
+	mov	r5,	#SCR_HEIGHT
+	mov	r0,	sp
+	push	{r1-r5}
+	bl	DrawEmptyRectangle
+	mov	sp,	r0
+
 	ldr	r0,	=ptsStr
 	ldr	r1,	=PlayerPoints
 	ldr	r1,	[r1]
@@ -264,11 +380,7 @@ doneBul:
 	moveq	r3,	#0xF800
 	bleq	DrawString
 gDone:
-	.unreq	count
-	.unreq	numObj
-	.unreq	objPtr
-
-	pop	{r4-r8, pc}
+	pop	{r4-r5,pc}
 
 .globl	OffsetPosition
 /* Returns (x, y) offset by the direction 
@@ -304,8 +416,10 @@ offsDone:
 	.unreq	dir
 	bx	lr
 	
-/* Checks if obj_m is an active object */
 .globl	IsActive
+/* Checks if obj_m is an active object 
+ * r0 = object
+*/
 IsActive:
 	obj_m	.req	r0
 	result	.req	r3

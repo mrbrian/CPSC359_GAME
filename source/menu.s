@@ -101,6 +101,7 @@ DrawMenu:
 	ldr	r3,	=MENU_CLR2
 	ldr	r4,	=450
 	ldr	r5,	=300
+	mov	r0,	sp
 	push	{r1-r5}
 	bl	DrawEmptyRectangle	// draw rectangle border
 	mov	sp,	r0
