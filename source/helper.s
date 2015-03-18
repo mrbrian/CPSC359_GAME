@@ -145,6 +145,25 @@ mod_done:
 	pop	{r4-r9}
 	bx	lr
 
+.globl	RandomDirection
+/* Uses the clock to return a sortof random number 1,2,4, or 8
+ * Returns:
+ * 	r0 - returns 2 LSB of clock
+*/
+RandomDirection:
+	push	{r4-r5,lr}
+	ldr	r4,	=CLOCKADDR
+	ldr	r4,	[r4]
+
+	ldr	r5,	=0xFFFFFFFC
+	bic	r1,	r4,	r5
+
+	mov	r0,	#1
+	lsl	r0,	r1
+	
+	pop	{r4-r5,pc}
+	bx	lr
+
 .section .data	
 modValues_m:
 	.int	1000000000	// all the mod values, easily retrievable in sequence

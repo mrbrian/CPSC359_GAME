@@ -5,16 +5,21 @@
 /*	Controls the input and game loops
 */
 GameMain:
-	push	{r4-r7,lr}
+	push	{r4-r8,lr}
 	bl	InitSNES
-	bl	InitGame
+
+	prevScore	.req	r8
 
 	ldr	r4,	=pawns_m
 	ldr	r5,	=NumOfObjects
 	ldr	r6,	=0xFFFF
+reset:
+	bl	InitGame
 	bl	ClearScreen
 	bl	DrawScene
 loopInit:
+	ldr	r0,	=PlayerPoints
+	ldr	prevScore,	[r0]
 	ldr	r3,	=CLOCKADDR	// address of CLO(ck) - 0x20003004
 	ldr	r1,	[r3]		// read CLO
 	ldr	r0,	=FRAMEDELAY
@@ -38,8 +43,7 @@ doPlayer:
 	ldr	r1,	=0xFFFF
 	cmp	r0,	r1
 	beq	inputClearLoop		// none of the buttons pressed
-	bl	InitGame
-	b	doDraw
+	b	reset
 normalState:
 	cmp	r7,	#0
 	bleq	UpdatePlayer	// r0 = 1 if valid move performed
@@ -47,9 +51,7 @@ normalState:
 	ldr	r7,	[r7]
 	bl	UpdateScene	// r0 = 1 
 doDraw:
-	//bl	ClearScreen
-	//mov	r0,	#1
-	//bl	DrawScene
+	mov	r0,	prevScore
 	bl	DrawUI
 	bl	DrawMenu
 inputClearLoop:	
@@ -68,7 +70,8 @@ inputClearLoop:
 	b	inputClearLoop
 haltLoop$:
 	b		haltLoop$
-	pop	{r4-r7,pc}
+	.unreq	prevScore
+	pop	{r4-r8,pc}
 
 
 .globl	UpdateScene
@@ -322,10 +325,12 @@ doneBul:
 	pop	{r4-r9, pc}
 
 /* Draws player score, game title, names
+ * r0 = previous Score (so we can clear it)
 */
 DrawUI:
-	push	{r4-r5,lr}
+	push	{r4-r6,lr}
 
+	mov	r6,	r0
 	mov	r1,	#0
 	mov	r2,	#0
 	ldr	r3,	=0xFFFF
@@ -335,6 +340,15 @@ DrawUI:
 	push	{r1-r5}
 	bl	DrawEmptyRectangle
 	mov	sp,	r0
+
+	ldr	r0,	=ptsStr
+	mov	r1,	r6
+	bl	IntToString
+	ldr	r0,	=scoreStr
+	mov	r1,	#0
+	mov	r2,	#0
+	ldr	r3,	=BG_COLOR
+	bl	DrawString
 
 	ldr	r0,	=ptsStr
 	ldr	r1,	=PlayerPoints
@@ -380,7 +394,7 @@ DrawUI:
 	moveq	r3,	#0xF800
 	bleq	DrawString
 gDone:
-	pop	{r4-r5,pc}
+	pop	{r4-r6,pc}
 
 .globl	OffsetPosition
 /* Returns (x, y) offset by the direction 

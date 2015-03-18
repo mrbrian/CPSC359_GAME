@@ -70,14 +70,17 @@ vmdone:
  *	r1 - direction of bullet (use 4 LSB, 0001 = Up, 0010 = Right, 0100 = Down, 0001 = Left)
  */
 FireBullet:		// (int ownerObj, int dir)	
-	push	{r4-r7,lr}
-	owner	.req	r0
-	dir	.req	r1
-	addr	.req	r2
-	offs	.req	r3
-	px	.req	r4
-	py	.req	r5
-	index	.req	r6
+	push	{r4-r10,lr}
+	owner	.req	r4
+	dir	.req	r5
+	addr	.req	r6
+	offs	.req	r7
+	px	.req	r8
+	py	.req	r9
+	index	.req	r10
+
+	mov	owner,	r0
+	mov	dir,	r1
 	ldrb	index,	[owner, #OBJ_IDX]
 
 	ldr	addr,	=pBullet_m
@@ -85,7 +88,13 @@ FireBullet:		// (int ownerObj, int dir)
 	mla	addr,	index,	r7,	addr
 	
 	.unreq	offs
-	
+
+	ldrb	r8,	[addr, #BUL_FLG]	// check if active bullet exists
+	cmp	r8,	#1
+	moveq	r0,	#0
+	moveq	r1,	addr
+	bleq	DrawObject
+
 	ldrb	px,	[owner, #OBJ_X]	// x
 	ldrb	py,	[owner, #OBJ_Y]	// y 		
 
@@ -114,7 +123,7 @@ fireskip:
 	.unreq	py
 	.unreq	index
 	
-	pop	{r4-r7,pc}
+	pop	{r4-r10,pc}
 	
 .globl	MoveObject	
 /* Moves an object along cardinal directions according to the LS 4 bits of dir 

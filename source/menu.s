@@ -30,6 +30,8 @@ UpdateMenu:
 	mov	mstate,	#MENU_RESUME
 	b	startdone
 turnmenuoff:
+	bl	ClearScreen
+	bl	DrawScene
 	mov	mstate,	#0
 startdone:
 	cmp	mstate,	#0	// is menu off
@@ -65,7 +67,9 @@ quitLoop:
 	b	quitLoop
 mrestart:
 	mov	mstate,	#MENU_OFF	// turning off menu
+	bl	ClearScreen	
 	bl	InitGame		// re-initialize game
+	bl	DrawScene	
 udone:	
 	str	mstate,	[msaddr]
 	mov	r0,	result

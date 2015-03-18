@@ -9,6 +9,12 @@ testStr:
 .globl	Tests
 
 Tests:
+/*
+randtest$:
+	ldr	r0,	=CLOCKADDR
+	ldr	r0,	[r0]
+	bl	Random
+	b	randtest$*/
 modtest$:
 	bl	InitGame
 	ldr	r0,	=ptsStr
