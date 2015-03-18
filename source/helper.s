@@ -1,7 +1,10 @@
 .include "constants.s"
-.globl SetGPIOFunc
 
-/* r0 = new function, r1 = pin # */
+.globl SetGPIOFunc
+/* Sets the GPIO Function of line r1, to r0
+ * r0 = new function
+ * r1 = line # 
+*/
 SetGPIOFunc:
 	ldr	r2, 	=GPIOFSEL0 	// r2 = base addr
 
@@ -24,8 +27,9 @@ setGPIOloop$:
 	bx	lr
 
 .globl GetGPIOFunc
-
-/* r0 = pin # */
+/* Returns the GPIO Function of line r0
+ * r0 = line #
+ */
 GetGPIOFunc:
 	ldr	r2, 	=GPIOFSEL0 	// r2 = base addr
 
@@ -46,9 +50,10 @@ getGPIOloop$:
 	bx	lr
 
 .globl WriteGPIO
-
-/* WriteGPIOFunc(line#, value) 
-/* r0 = pin#, r1 = value to write */
+/* Writes a 0, or 1 to GPIO Line r0
+ * r0 = line # 
+ * r1 = value to write 
+ */
 WriteGPIO:	
 	push	{r4, r5}
 	ldr	r2,	=GPIOFSEL0
@@ -69,9 +74,9 @@ WriteGPIO:
 	bx	lr
 
 .globl ReadGPIO
-
-/* ReadGPIOFunc(line#, value) 
-/* r0 = pin#  r1 = value */
+/* Returns the data bit for GPIO Line r0
+ * r0 = line #  
+*/
 ReadGPIO:	
 	ldr	r2,	=GPIOFSEL0	// base GPIO reg
 	ldr	r1,	[r2,	#52]	//GPLEV0
@@ -84,7 +89,9 @@ ReadGPIO:
 	bx	lr
 
 .globl	Wait
-/* r0 = micros */
+/* r0 = micros 
+Author: Taken from ARM 7 lecture slides
+*/
 Wait:
 	ldr	r3,	=0x20003004	// address of CLO(ck)
 	ldr	r1,	[r3]		// read CLO
@@ -95,7 +102,10 @@ waitLoop:
 	bhi waitLoop
 	bx	lr
 
-/* Converts a int value to a string */
+/* Converts an int value r1 to a string, storing it into the address r0
+ * r0 = address of string 
+ * r1 = int value 
+*/
 .globl	IntToString
 IntToString:
 	push	{r4-r9}
@@ -111,59 +121,52 @@ IntToString:
 	mov	num,		r1
 	mov	origNum,	r1
 	ldr	mod,		[modAddr]
-modOuterLoop:
+modOuterLoop:			
 	mov	digit,		#0
-	cmp	mod,	#0
-	beq	mod_done
+	cmp	mod,	#0	// start from 10^9's place and work down to 1's place
+	beq	mod_done	// end loop after converting 1's place
 modInnerLoop:
-	cmp	num,	mod	// do num-mod until num < mod
+	cmp	num,	mod	// digit = count how many times we can subtract mod from num
 	blt	modInnerDone	
 	sub	num,	mod
 	add	digit,		#1
 	b	modInnerLoop
 modInnerDone:
-	add	r2,	digit,	#48
-	strb	r2,	[r0]	// add character to output..
+	add	r2,	digit,	#48	// add 48 to digit to get ascii value
+	strb	r2,	[r0]	// save character to output string[count]
 	add	r0,	#1
-	mul	digit,		mod
-	sub	origNum,	num	
-	add	count,		#1
-	add	modAddr,	#4
-	ldr	mod,		[modAddr]
+	mul	digit,		mod	// shift digit back to its place
+	sub	origNum,	num	// and subtract it from the original number
+	add	count,		#1	// increment counter
+	add	modAddr,	#4	// getting address of the next mod value
+	ldr	mod,		[modAddr]	// loading the next mod value (current mod/10)
 	b	modOuterLoop
 mod_done:	
 	pop	{r4-r9}
 	bx	lr
 
-/* returns a sortof random number from 0 to r0 */
-.globl	Random
-Random:
-	push	{r4,r5}
-	rtemp	.req	r5
-
-	ldr	r4,	=random_m
+.globl	RandomDirection
+/* Uses the clock to return a sortof random number 1,2,4, or 8
+ * Returns:
+ * 	r0 - returns 2 LSB of clock
+*/
+RandomDirection:
+	push	{r4-r5,lr}
+	ldr	r4,	=CLOCKADDR
 	ldr	r4,	[r4]
-	mul	rtemp,	r4,	r4
 
-	ldr	r4,	=random_m
-	and	r4,	#0xFF
-	str	r5,	[r4]
-rmod:
-	cmp	rtemp,	r0
-	blt	rmod_done
-	sub	rtemp, 	r0
-	b	rmod
-rmod_done:
-	mov	r0,	r5
-	pop	{r4,r5}
+	ldr	r5,	=0xFFFFFFFC
+	bic	r1,	r4,	r5
+
+	mov	r0,	#1
+	lsl	r0,	r1
+	
+	pop	{r4-r5,pc}
 	bx	lr
 
 .section .data	
-.globl	random_m
-random_m:
-	.int	RAND_SEED
 modValues_m:
-	.int	1000000000
+	.int	1000000000	// all the mod values, easily retrievable in sequence
 	.int	100000000
 	.int	10000000
 	.int	1000000

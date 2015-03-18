@@ -1,6 +1,12 @@
 .section .text
 
-.globl	DrawString	// r0 address, r1=x, r2=y, r3=color
+.globl	DrawString	
+/* Draws a colored string at x,y
+ *	r0 - address of string
+ *	r1 - x coord
+ *	r2 - y coord
+ *	r3 - color
+  */
 DrawString:
 	push	{r4-r7, lr}
 	char	.req	r4
@@ -12,19 +18,18 @@ DrawString:
 	mov	py,	r2
 	mov	idx,	#0
 
-	ldrb	char,	[r7]
+	ldrb	char,	[r7]	// load first character of string
 dsLoop:
-	cmp	char,	#0
-	beq	done
+	cmp	char,	#0	// is it the end of the string?
+	beq	done	// ..then go to done 
 
-	mov	r0,	char
-	add	r1,	#9
-	mov	r2,	r6
+	mov	r0,	char	// arg0 = char
+	mov	r2,	r6	// arg2 = y
 
-	blne	DrawChar
-
-	add	idx,	#1
-	ldrb	char,	[addr, idx]
+	bl	DrawChar
+	add	r1,	#9		// x += 9
+	add	idx,	#1	// get address of next character
+	ldrb	char,	[addr, idx]	// load next character
 	b	dsLoop
 done:
 	.unreq	char
@@ -34,7 +39,12 @@ done:
 	pop	{r4-r7, pc}
 
 .globl	DrawChar
-/* Draw the character r0 to (0,0)
+/* Draw the character r0 to (x,y)
+ *	r0 - address of string
+ *	r1 - x coord
+ *	r2 - y coord
+ *	r3 - color
+Author: Taken from Tutorial 09 - main.s
  */
 DrawChar:
 	push	{r4-r8, lr}

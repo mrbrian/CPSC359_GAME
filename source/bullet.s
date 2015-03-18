@@ -147,33 +147,6 @@ skipPoints:
 	.unreq	addr	
 	pop	{r4-r10,pc}
 
-
-/* Moves a bullet along cardinal directions according to the LS 4 bits of dir */
-//(int obj_m, byte dir)
-.globl	BulletCollide
-BulletCollide:
-	push	{r4-r7,lr}
-	obj_m	.req	r4	// the bullet
-	px	.req	r5
-	py	.req	r6
-	addr	.req	r7
-	
-	mov	obj_m,	r0
-	ldr	addr,	=player_m
-	mov	r0,	obj_m
-	mov	r1,	addr
-	bl	DetectHit
-	cmp	r0,	#1
-	bne	bcdone
-	bleq	PlayerTakeDamage
-bcdone:
-	.unreq	obj_m	
-	.unreq	px	
-	.unreq	py
-	.unreq	addr
-	pop	{r4-r7,pc}
-
-
 /* Moves a bullet along cardinal directions according to the LS 4 bits of dir */
 //(int obj_m, byte dir)
 .globl	MoveBullet
@@ -186,11 +159,17 @@ MoveBullet:
 	count	.req	r8
 	num	.req	r9
 	addr	.req	r10
+	ignore	.req	r11
 	
 	mov	obj_m,	r0
 	mov	dir,	r1
 	ldrb	px,	[obj_m, #BUL_X]
 	ldrb	py,	[obj_m, #BUL_Y]
+
+	ldr	r11,	=pBullet_m
+	cmp	obj_m,	r11
+	moveq	ignore,	#0
+	movne	ignore,	#1
 
 	mov	r0,	px
 	mov	r1,	py
@@ -202,9 +181,17 @@ MoveBullet:
 	cmp	r0,	#1	// if ValidMove passes
 	bne	bulletOff
 
+	mov	r0,	#0
+	mov	r1,	obj_m
+	bl	DrawBullet
+
 	strb	px,	[obj_m, #BUL_X]
 	strb	py,	[obj_m, #BUL_Y]
 	strb	dir,	[obj_m, #BUL_DIR]
+
+	mov	r0,	#1
+	mov	r1,	obj_m
+	bl	DrawBullet
 
 	mov	count,	#0
 	ldr	num,	=NumOfObjects
@@ -214,11 +201,29 @@ MoveBullet:
 mbLoop:
 	cmp	count,	num	// loop through all objects, test for collision
 	bge	modone
+
+	cmp	ignore,	#0
+	beq	doCheck
+	cmp	count,	#0	// this is an enemy bullet so, only check for player
+	beq	doCheck
+	ldr	r0,	=obstacles_m	
+	cmp	addr,	r0
+	bge	doCheck
+	b	dmgSkip
+doCheck:
 	mov	r0,	obj_m
 	mov	r1,	addr
 	bl	DetectHit
 	cmp	r0,	#1
 	bne	dmgSkip
+hithit:
+	mov	r0,	#0
+	mov	r1,	obj_m
+	bl	DrawObject
+	mov	r0,	#0
+	mov	r1,	addr
+	bl	DrawObject
+
 	ldr	r0,	=player_m
 	cmp	addr,	r0
 	bne	else
@@ -227,11 +232,20 @@ mbLoop:
 else:
 	blne	EnemyTakeDamage
 endif:
+	mov	r0,	#1
+	mov	r1,	obj_m
+	bl	DrawObject
+	mov	r0,	#1
+	mov	r1,	addr
+	bl	DrawObject
 dmgSkip:
 	add	count,	#1
 	add	addr,	#OBJ_SIZE
 	b	mbLoop
 bulletOff:
+	mov	r0,	#0
+	mov	r1,	obj_m
+	bl	DrawObject
 	mov	r0,	#0
 	strb	r0,	[obj_m, #BUL_FLG]
 modone:
@@ -242,6 +256,7 @@ modone:
 	.unreq	count
 	.unreq	num
 	.unreq	addr
+	.unreq	ignore
 	pop	{r4-r10,pc}
 
 .section .data

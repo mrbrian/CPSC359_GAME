@@ -2,6 +2,8 @@
 .section .text
 
 .globl	UpdateAI
+/* Moves enemies and make them shoot
+*/
 UpdateAI:
 	push	{r4-r8,lr}
 
@@ -30,15 +32,19 @@ aiLoop:
 	cmp	r0,	#0
 	beq	aiShoot		
 
+	bl	RandomDirection
+	mov	r1,	r0
 	mov	r0,	obj_m
-	ldr	r1,	=player_m
+/*	ldr	r1,	=player_m
 	ldrb	r1,	[r1, count]
 	and	r1,	#0b1111
+*/
 	bl	MoveObject
 	b	aiInc
-aiShoot:
-	mov	r0,	obj_m
-	mov	r1,	#8
+aiShoot:	
+	bl	RandomDirection
+	mov	r1,	r0
+	mov	r0,	obj_m	
 	bl	FireBullet
 aiInc:
 	add	obj_m,	#OBJ_SIZE
