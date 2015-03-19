@@ -1,7 +1,7 @@
 .section .text
 
-.equ SCR_WIDTH,	1024
-.equ SCR_HEIGHT,	768
+SCR_WIDTH 	= 1024	// screen width 
+SCR_HEIGHT	= 768	// screen height
 
 CLOCK		= 11
 DATA		= 10
@@ -15,7 +15,7 @@ GPIOSET0	= 0x2020001C
 GPIOCLR0	= 0x20200028
 GPIOLEV0	= 0x20200034
 
-FRAMEDELAY	= 0x10000 
+FRAMEDELAY	= 0x18000 
 TILESIZE	= 32 
 MAX_PX 		= 31
 MAX_PY 		= 23
@@ -40,8 +40,16 @@ BUL_DIR	 	= 4
 BUL_FLG		= 5
 BUL_CLR 	= 6
 
+PA_W		= 16
+PA_H		= 24
 PA_HP		= 10
+
+KN_W		= 24
+KN_H		= 32
 KN_HP		= 20
+
+QU_W		= 32
+QU_H		= 32
 QU_HP		= 50
 OBS_HP		= 50
 
@@ -70,4 +78,6 @@ MENU_RESUME	= 1
 MENU_RESTART	= 2
 MENU_QUIT	= 3
 
+BULLET_W	= 3
+BULLET_H	= 10
 BULLET_DAMAGE	= 10

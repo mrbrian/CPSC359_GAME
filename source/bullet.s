@@ -259,4 +259,43 @@ modone:
 	.unreq	ignore
 	pop	{r4-r10,pc}
 
+.globl	DrawBullet
+/*
+ * r0 = doDraw
+ * r1 = objPtr
+*/
+DrawBullet:
+	push	{r4-r6,lr}
+
+	bgClr	.req	r4
+	doDraw	.req	r5
+	objPtr	.req	r6
+
+	ldr	bgClr,	=BG_COLOR
+	mov	doDraw,	r0
+	mov	objPtr,	r1
+	mov	r0,	objPtr
+	bl	IsActive
+	cmp	r0,	#0
+	beq	dDone
+
+	ldrb	r1,	[objPtr, #BUL_X]
+	lsl	r1,	#5
+	ldrb	r2,	[objPtr, #BUL_Y]
+	lsl	r2,	#5
+	ldrh	r3,	[objPtr, #BUL_CLR]
+	cmp	doDraw,	#0
+	moveq	r3,	bgClr
+	ldrb	r4,	[objPtr, #BUL_W]
+	ldrb	r5,	[objPtr, #BUL_H]
+	mov	r0,	sp
+	push	{r1-r5}			// store vars on stack
+	bl	DrawCenteredRectangle
+	mov	sp,	r0
+dDone:
+	.unreq	doDraw
+	.unreq	objPtr
+	.unreq	bgClr
+	pop	{r4-r6,pc}
+	
 .section .data

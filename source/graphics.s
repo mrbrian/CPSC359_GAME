@@ -7,14 +7,48 @@
 .equ	RECT_W,		-8
 .equ	RECT_H,		-4
 
+.globl	DrawCenteredRectangle 
+/* Draws a filled rectangle, centered about (cx, cy)
+ * r0 = memory pointer to variables on the stack
+ *	[r0, #-20] = x coord
+ *	[r0, #-16] = y coord
+ *	[r0, #-12] = color
+ *	[r0, #-8] = width
+ *	[r0, #-4] = height
+ * Returns:
+ * 	r0 = original r0 value
+ */
+DrawCenteredRectangle:
+	push	{r4, lr}
+		
+	mPtr 	.req	r4
+
+	mov	mPtr,	r0
+	ldr	r0,	[mPtr, #RECT_X]	// x
+	add	r0,	#16
+	ldr	r1,	[mPtr, #RECT_W]	// width
+	sub	r0,	r0,	r1, lsr #1
+	str	r0,	[mPtr, #RECT_X]
+
+	ldr	r0,	[mPtr, #RECT_Y]	// y
+	add	r0,	#16
+	ldr	r1,	[mPtr, #RECT_H]	// height
+	sub	r0,	r0,	r1, lsr #1
+	str	r0,	[mPtr, #RECT_Y]
+
+	mov	r0,	mPtr
+	bl	DrawFilledRectangle
+	pop	{r4, pc}
+
+
 .globl	DrawFilledRectangle 
 /* Draws a filled rectangle
  *	r0 = memory pointer to variables on the stack
- *	[r0, #-4] = x coord
- *	[r0, #-8] = y coord
+ *	[r0, #-20] = x coord
+ *	[r0, #-16] = y coord
  *	[r0, #-12] = color
- *	[r0, #-16] = width
- *	[r0, #-20] = height
+ *	[r0, #-8] = width
+ *	[r0, #-4] = height
  * Returns:
  * 	r0 = original r0 value
  */

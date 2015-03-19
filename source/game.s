@@ -50,6 +50,7 @@ normalState:
 	ldr	r7,	=GameState
 	ldr	r7,	[r7]
 	bl	UpdateScene	// r0 = 1 
+	bl	DrawScene
 doDraw:
 	mov	r0,	prevScore
 	bl	DrawUI
@@ -148,84 +149,6 @@ edone:
 	pop	{r4-r8}
 	bx	lr
 
-.globl	DrawObject
-/*
- * r0 = doDraw
- * r1 = objPtr
-*/
-DrawObject:
-	push	{r4-r6,lr}
-
-	bgClr	.req	r4
-	doDraw	.req	r5
-	objPtr	.req	r6
-
-	ldr	bgClr,	=BG_COLOR
-	mov	doDraw,	r0
-	mov	objPtr,	r1
-	mov	r0,	objPtr
-	bl	IsActive
-	cmp	r0,	#0
-	beq	dobDone
-
-	ldrb	r1,	[objPtr, #OBJ_X]
-	lsl	r1,	#5
-	ldrb	r2,	[objPtr, #OBJ_Y]
-	lsl	r2,	#5
-	ldrh	r3,	[objPtr, #OBJ_CLR]
-	cmp	doDraw,	#0
-	moveq	r3,	bgClr
-	ldrb	r4,	[objPtr, #OBJ_W]
-	ldrb	r5,	[objPtr, #OBJ_H]
-	mov	r0,	sp
-	push	{r1-r5}			// store vars on stack
-	bl	DrawFilledRectangle
-	mov	sp,	r0
-dobDone:
-	.unreq	doDraw
-	.unreq	objPtr
-	.unreq	bgClr
-	pop	{r4-r6,pc}
-	
-.globl	DrawBullet
-/*
- * r0 = doDraw
- * r1 = objPtr
-*/
-DrawBullet:
-	push	{r4-r6,lr}
-
-	bgClr	.req	r4
-	doDraw	.req	r5
-	objPtr	.req	r6
-
-	ldr	bgClr,	=BG_COLOR
-	mov	doDraw,	r0
-	mov	objPtr,	r1
-	mov	r0,	objPtr
-	bl	IsActive
-	cmp	r0,	#0
-	beq	dDone
-
-	ldrb	r1,	[objPtr, #BUL_X]
-	lsl	r1,	#5
-	ldrb	r2,	[objPtr, #BUL_Y]
-	lsl	r2,	#5
-	ldrh	r3,	[objPtr, #BUL_CLR]
-	cmp	doDraw,	#0
-	moveq	r3,	bgClr
-	ldrb	r4,	[objPtr, #BUL_W]
-	ldrb	r5,	[objPtr, #BUL_H]
-	mov	r0,	sp
-	push	{r1-r5}			// store vars on stack
-	bl	DrawFilledRectangle
-	mov	sp,	r0
-dDone:
-	.unreq	doDraw
-	.unreq	objPtr
-	.unreq	bgClr
-	pop	{r4-r6,pc}
-	
 .globl	DrawScene
 /* Draws all objects in game world
 */
@@ -277,7 +200,7 @@ drawObject:				// draw each object
 	ldrb	r5,	[objPtr, #OBJ_H]
 	mov	r0,	sp
 	push	{r1-r5}			// store vars on stack
-	bl	DrawFilledRectangle
+	bl	DrawCenteredRectangle
 	mov	sp,	r0
 drawObjectInc:
 	add	count,	#1
@@ -310,7 +233,7 @@ drawBullet:				// draw each object
 	ldrb	r5,	[objPtr, #BUL_H]
 	mov	r0,	sp
 	push	{r1-r5}			// store vars on stack
-	bl	DrawFilledRectangle
+	bl	DrawCenteredRectangle
 	mov	sp,	r0
 drawBulletInc:
 	add	count,	#1
@@ -361,17 +284,17 @@ DrawUI:
 	bl	DrawString
 	ldr	r0,	=titleStr
 	mov	r1,	#0
-	mov	r2,	#15
+	ldr	r2,	=720
 	ldr	r3,	=0x7E0
 	bl	DrawString
 	ldr	r0,	=brianStr
 	mov	r1,	#0
-	mov	r2,	#30
+	ldr	r2,	=735
 	ldr	r3,	=0x7E0
 	bl	DrawString
 	ldr	r0,	=ianStr
 	mov	r1,	#0
-	mov	r2,	#45
+	ldr	r2,	=750
 	ldr	r3,	=0x7E0
 	bl	DrawString
 
@@ -539,8 +462,8 @@ pawns_m:
 	.rept	NUM_PA	// 10 pawns
 	.byte	0	// x
 	.byte	0	// y
-	.byte 	8	// w	
-	.byte 	16	// h
+	.byte 	PA_W	// w	
+	.byte 	PA_H	// h
 	.byte	PA_HP	// hitpoints
 	.byte	5	// value 
 	.byte	0	// facing direction
@@ -552,8 +475,8 @@ knights_m:
 	.rept	NUM_KN	// 5 knights
 	.byte	16	// x
 	.byte	0	// y
-	.byte 	16	// w	
-	.byte 	24	// h
+	.byte 	KN_W	// w	
+	.byte 	KN_H	// h
 	.byte	KN_HP	// hitpoints
 	.byte	10	// value 
 	.byte	0	// facing direction
@@ -565,8 +488,8 @@ queens_m:
 	.rept	NUM_QU	// 2 queens
 	.byte	0	// x
 	.byte	0	// y
-	.byte 	24	// w	
-	.byte 	32	// h
+	.byte 	QU_W	// w	
+	.byte 	QU_H	// h
 	.byte	QU_HP	// hitpoints
 	.byte	100	// value 
 	.byte	0	// facing direction

@@ -32,7 +32,8 @@ ValidObjectMove:	// (int x, int y) : bool
 	mov	result,	#1		// by default return 1
 	ldr	numObj,	=NumOfObjects
 	ldr	numObj,	[numObj]
-	ldr	addr,	=pawns_m	// starting with the first object
+	add	numObj,	#1		// +1 for player
+	ldr	addr,	=player_m	// starting with the first object
 	mov	count,	#0
 vmloop:			
 	cmp	count,	numObj	// loop through all objects
@@ -102,11 +103,11 @@ FireBullet:		// (int ownerObj, int dir)
 	strb	py,	[addr, #BUL_Y]	
 		
 	tst	dir,	#5	// moving up or down?
-	movne	r3,	#4	// up/down : bullet width 4
-	moveq	r3,	#24	// left/right: bullet width 24
+	movne	r3,	#BULLET_W	// up/down : bullet width 4
+	moveq	r3,	#BULLET_H	// left/right: bullet width 24
 	strb	r3,	[addr, #BUL_W]	
-	movne	r3,	#24	// up/down: bullet height 24
-	moveq	r3,	#4	// left/right: bullet height 4
+	movne	r3,	#BULLET_H	// up/down: bullet height 24
+	moveq	r3,	#BULLET_W	// left/right: bullet height 4
 	strb	r3,	[addr, #BUL_H]	
 
 	strb	dir,	[addr, #BUL_DIR]	
@@ -171,5 +172,44 @@ modone:
 	.unreq	px	
 	.unreq	py	
 	pop	{r4-r7,pc}
+	
+.globl	DrawObject
+/*
+ * r0 = doDraw
+ * r1 = objPtr
+*/
+DrawObject:
+	push	{r4-r6,lr}
+
+	bgClr	.req	r4
+	doDraw	.req	r5
+	objPtr	.req	r6
+
+	ldr	bgClr,	=BG_COLOR
+	mov	doDraw,	r0
+	mov	objPtr,	r1
+	mov	r0,	objPtr
+	bl	IsActive
+	cmp	r0,	#0
+	beq	dobDone
+
+	ldrb	r1,	[objPtr, #OBJ_X]
+	lsl	r1,	#5
+	ldrb	r2,	[objPtr, #OBJ_Y]
+	lsl	r2,	#5
+	ldrh	r3,	[objPtr, #OBJ_CLR]
+	cmp	doDraw,	#0
+	moveq	r3,	bgClr
+	ldrb	r4,	[objPtr, #OBJ_W]
+	ldrb	r5,	[objPtr, #OBJ_H]
+	mov	r0,	sp
+	push	{r1-r5}			// store vars on stack
+	bl	DrawCenteredRectangle
+	mov	sp,	r0
+dobDone:
+	.unreq	doDraw
+	.unreq	objPtr
+	.unreq	bgClr
+	pop	{r4-r6,pc}
 	
 .section .data

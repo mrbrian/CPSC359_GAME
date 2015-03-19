@@ -69,9 +69,9 @@ pawnloop:
 	strb	temp,	[objPtr, #OBJ_X]	
 	mov	temp,	#0
 	strb	temp,	[objPtr, #OBJ_Y]	
-	mov	temp,	#8
+	mov	temp,	#PA_W
 	strb	temp,	[objPtr, #OBJ_W]	
-	mov	temp,	#16
+	mov	temp,	#PA_H
 	strb	temp,	[objPtr, #OBJ_H]	
 	mov	temp,	#PA_HP
 	strb	temp,	[objPtr, #OBJ_HP]
@@ -99,9 +99,9 @@ knightloop:
 	strb	temp,	[objPtr, #OBJ_X]	
 	mov	temp,	#0
 	strb	temp,	[objPtr, #OBJ_Y]	
-	mov	temp,	#16
+	mov	temp,	#KN_W
 	strb	temp,	[objPtr, #OBJ_W]	
-	mov	temp,	#24
+	mov	temp,	#KN_H
 	strb	temp,	[objPtr, #OBJ_H]	
 	mov	temp,	#KN_HP
 	strb	temp,	[objPtr, #OBJ_HP]
@@ -129,9 +129,9 @@ queenloop:
 	strb	temp,	[objPtr, #OBJ_X]	
 	mov	temp,	#0
 	strb	temp,	[objPtr, #OBJ_Y]	
-	mov	temp,	#24
+	mov	temp,	#QU_W
 	strb	temp,	[objPtr, #OBJ_W]	
-	mov	temp,	#32
+	mov	temp,	#QU_H
 	strb	temp,	[objPtr, #OBJ_H]	
 	mov	temp,	#QU_HP
 	strb	temp,	[objPtr, #OBJ_HP]

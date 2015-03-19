@@ -23,6 +23,11 @@ aiLoop:
 	cmp	count,	num
 	bge	aiDone
 
+	ldr	r0,	=CLOCKADDR
+	ldr	r0,	[r0]
+	tst	r0,	#0b1000
+	beq	aiInc
+
 	mov	r0,	obj_m
 	bl	IsActive
 	cmp	r0,	#0
@@ -35,10 +40,7 @@ aiLoop:
 	bl	RandomDirection
 	mov	r1,	r0
 	mov	r0,	obj_m
-/*	ldr	r1,	=player_m
-	ldrb	r1,	[r1, count]
-	and	r1,	#0b1111
-*/
+
 	bl	MoveObject
 	b	aiInc
 aiShoot:	
